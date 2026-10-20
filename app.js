@@ -452,14 +452,15 @@ function initNavigation() {
 
 function initTheme() {
     const themeToggle = document.getElementById('theme-toggle');
-    const savedTheme = localStorage.getItem('rei_theme') || 'dark';
+    // Talab bo'yicha standart mavzu - yorqin (light mode)
+    const savedTheme = localStorage.getItem('rei_theme') || 'light';
 
-    if (savedTheme === 'light') {
-        document.body.removeAttribute('data-theme');
-        if (themeToggle) themeToggle.checked = true;
-    } else {
+    if (savedTheme === 'dark') {
         document.body.setAttribute('data-theme', 'dark');
         if (themeToggle) themeToggle.checked = false;
+    } else {
+        document.body.removeAttribute('data-theme');
+        if (themeToggle) themeToggle.checked = true;
     }
 
     if (themeToggle) {
@@ -1065,7 +1066,7 @@ let currentCalm = 75;
 let currentStress = 18;
 let liveEmotionState = {
     type: 'neutral',
-    label: 'Xotirjamlik va Ichki Balans',
+    label: 'Xotirjamlik va ichki balans',
     emoji: '😌',
     tag: '😌 XOTIRJAM VA NEYTRAL',
     color: '#00f0ff',
@@ -1217,7 +1218,7 @@ function analyzeVideoFrameForEmotions(source) {
 
         liveEmotionState = {
             type: 'angry',
-            label: "G'azab va Kuchli Taranglik",
+            label: "G'azab va kuchli taranglik",
             emoji: '😠',
             tag: '😠 JAHL / TARANGLIK ANIQLANDI',
             color: '#ef4444',
@@ -1235,7 +1236,7 @@ function analyzeVideoFrameForEmotions(source) {
 
         liveEmotionState = {
             type: 'smile',
-            label: 'Quvonch va Tabassum',
+            label: 'Quvonch va tabassum',
             emoji: '😊',
             tag: '😊 TABASSUM ANIQLANDI',
             color: '#10b981',
@@ -1252,7 +1253,7 @@ function analyzeVideoFrameForEmotions(source) {
 
         liveEmotionState = {
             type: 'focus',
-            label: 'Yuqori Kognitiv Diqqat',
+            label: 'Yuqori kognitiv diqqat',
             emoji: '🎯',
             tag: '🎯 DIQQAT JAMLANGAN',
             color: '#6366f1',
@@ -1269,7 +1270,7 @@ function analyzeVideoFrameForEmotions(source) {
 
         liveEmotionState = {
             type: 'neutral',
-            label: 'Xotirjamlik va Ichki Balans',
+            label: 'Xotirjamlik va ichki balans',
             emoji: '😌',
             tag: '😌 XOTIRJAM VA NEYTRAL',
             color: '#00f0ff',
@@ -2548,13 +2549,13 @@ window.renderFileHubSlots = function() {
     // Determine category to show in 15 slots
     const targetCat = currentFileHubCategory === 'all' ? 'lecture' : currentFileHubCategory;
     let sourceList = typeof lecturesData !== 'undefined' ? lecturesData : [];
-    let catTitle = "15 ta Ma'ruzalar matnlari fayllari";
+    let catTitle = "15 ta ma'ruza matnlari fayllari";
     if (targetCat === 'practical') {
         sourceList = typeof practicalsData !== 'undefined' ? practicalsData : [];
-        catTitle = "15 ta Amaliy topshiriqlar fayllari";
+        catTitle = "15 ta amaliy topshiriqlar fayllari";
     } else if (targetCat === 'test') {
         sourceList = typeof testsData !== 'undefined' ? testsData : [];
-        catTitle = "15 ta Test savollari fayllari";
+        catTitle = "15 ta test savollari fayllari";
     }
 
     let cardsHtml = '';
