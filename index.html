@@ -629,66 +629,164 @@
                 <div class="admin-active-strip">
                     <div class="strip-left">
                         <span class="strip-icon">👑</span>
-                        <span class="strip-text"><b>Sayt egasi (Admin) rejimi faol:</b> Siz erkin yangi ma'ruza, amaliy ish va test fayllarini yuklashingiz yoki o'chirishingiz mumkin.</span>
+                        <span class="strip-text"><b>Sayt egasi (Admin) rejimi faol:</b> Server xotirasini tejash uchun fayllarni Google Disk orqali ulashingiz yoki yangilashingiz mumkin.</span>
                     </div>
                     <button type="button" class="btn-logout-tiny" onclick="handleAdminLogout()">🚪 Chiqish</button>
                 </div>
                 <div class="upload-card-header">
                     <div class="upload-card-title-wrap">
-                        <span class="upload-badge-icon">📤</span>
+                        <span class="upload-badge-icon">☁️</span>
                         <div>
-                            <h3>Fayl yuklash va biriktirish</h3>
-                            <p>Kompyuteringizdan istalgan faylni tanlang yoki shu yerga sudrab tashlang</p>
+                            <h3 id="uploader-heading-text">Fayl ulash va boshqarish</h3>
+                            <p>Google Disk havolasini ulab, serverda 0 bayt joy sarflagan holda 1-betini avtomatik ko'rsating</p>
                         </div>
                     </div>
                     <button class="btn btn-outline-sm" id="btn-export-files-backup" title="Barcha yuklangan fayllar ro'yxatini yuklab olish">
                         <span>📥 Ro'yxatni yuklab olish</span>
                     </button>
                 </div>
-                
-                <div class="upload-dropzone" id="main-dropzone">
-                    <input type="file" id="universal-file-input" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.rar,.png,.jpg,.jpeg,.mp3,.mp4">
-                    <div class="dropzone-content">
-                        <div class="dropzone-icon">☁️</div>
-                        <h4>Faylni shu yerga sudrab tashlang yoki <span class="browse-link">tanlash uchun bosing</span></h4>
-                        <p class="dropzone-hint">Formatlar: PDF, Word (.docx, .doc), PowerPoint (.pptx), Excel (.xlsx), ZIP, Rasm yoki Audio</p>
-                        <div class="selected-file-preview hidden" id="selected-file-preview">
-                            <span class="selected-file-icon">📄</span>
-                            <span class="selected-file-name" id="selected-file-name">fayl.pdf</span>
-                            <span class="selected-file-size" id="selected-file-size">(0 KB)</span>
-                            <button type="button" class="btn-clear-selection" id="btn-clear-selection">&times;</button>
+
+                <!-- Mode Switcher Tabs -->
+                <div class="upload-mode-switcher">
+                    <button type="button" class="mode-switch-btn active" id="btn-mode-gdrive" onclick="switchUploadMode('gdrive')">
+                        <span class="mode-icon">🔗</span>
+                        <span class="mode-title">Google Disk orqali ulash</span>
+                        <span class="mode-tag">Tavsiya etiladi • 0 MB joy</span>
+                    </button>
+                    <button type="button" class="mode-switch-btn" id="btn-mode-local" onclick="switchUploadMode('local')">
+                        <span class="mode-icon">💻</span>
+                        <span class="mode-title">Kompyuterdan fayl yuklash</span>
+                        <span class="mode-tag">Lokal xotira</span>
+                    </button>
+                </div>
+
+                <!-- 1. GOOGLE DRIVE UPLOAD PANEL (Tavsiya etiladi - Joy tejash) -->
+                <div id="gdrive-upload-panel" class="upload-panel-section">
+                    <div class="gdrive-hint-box">
+                        <span class="hint-icon">💡</span>
+                        <div class="hint-content">
+                            <b>Google Diskdan havola ulash qo'llanmasi:</b>
+                            Faylingizni (Word, Taqdimot, PDF) Google Diskingizga joylang -> Sichqonchaning o'ng tugmasi -> <b>«Поделиться» / «Share»</b> -> <b>«Все, у кого есть ссылка» (Viewer)</b> qilib nusxa oling va quyidagi maydonga qo'ying. Tizim avtomatik uning <b>1-sahifasini muqova (rasm)</b> qilib oladi!
                         </div>
+                    </div>
+
+                    <div class="gdrive-form-grid">
+                        <div class="control-group full-width">
+                            <label for="gdrive-url-input">🔗 Google Disk ommaviy havolasi (link):</label>
+                            <div class="input-with-action">
+                                <input type="url" id="gdrive-url-input" class="text-input" placeholder="Masalan: https://drive.google.com/file/d/1BxiMVs0XRA5n.../view?usp=sharing">
+                                <button type="button" class="btn btn-outline-sm" id="btn-paste-gdrive" title="Vaqtinchalik xotiradan qo'yish">📋 Qo'yish</button>
+                            </div>
+                            <span class="input-helper" id="gdrive-url-status">Linkni qo'yishingiz bilan 1-sahifa prevyusi pastda avtomatik chiqadi</span>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="upload-target-category">📌 Qaysi bo'limga tegishli:</label>
+                            <select id="upload-target-category" class="select-input">
+                                <option value="lecture">📖 Ma'ruzalar matnlari (1-15)</option>
+                                <option value="practical">✍️ Amaliy topshiriqlar (1-15)</option>
+                                <option value="test">📝 Test savollari (1-15)</option>
+                                <option value="resource">📚 Qo'shimcha adabiyot va materiallar</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group" id="slot-select-group">
+                            <label for="upload-target-slot">🎯 Mavzuni tanlang:</label>
+                            <select id="upload-target-slot" class="select-input">
+                                <!-- Populated dynamically with 15 options -->
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="gdrive-file-name">📝 Fayl nomi / Mavzu sarlavhasi:</label>
+                            <input type="text" id="gdrive-file-name" class="text-input" placeholder="Masalan: 1-Mavzu: Emotsional intelekt tushunchasi va tarixi.pptx">
+                        </div>
+
+                        <div class="control-group">
+                            <label for="gdrive-file-type">📁 Fayl formati:</label>
+                            <select id="gdrive-file-type" class="select-input">
+                                <option value="pptx">📙 PowerPoint Taqdimot (.pptx, .ppt)</option>
+                                <option value="docx">📘 Word hujjat (.docx, .doc)</option>
+                                <option value="pdf">📕 PDF qo'llanma (.pdf)</option>
+                                <option value="xlsx">📗 Excel jadval (.xlsx, .xls)</option>
+                                <option value="zip">🗄️ ZIP / RAR arxiv</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="gdrive-subject-name">🏷️ Fan nomi:</label>
+                            <input type="text" id="gdrive-subject-name" class="text-input" value="Fan: Raqamli emotsional intelekt">
+                        </div>
+
+                        <div class="control-group">
+                            <label for="gdrive-downloads-count">📥 Boshlang'ich yuklab olishlar soni:</label>
+                            <input type="number" id="gdrive-downloads-count" class="text-input" value="72" min="0">
+                        </div>
+
+                        <div class="control-group full-width">
+                            <label for="gdrive-file-desc">💬 Tavsif yoki izoh (ixtiyoriy):</label>
+                            <input type="text" id="gdrive-file-desc" class="text-input" placeholder="Masalan: 1-mavzuning to'liq taqdimot slaydlar to'plami">
+                        </div>
+                    </div>
+
+                    <!-- Live 1st Page Preview Box -->
+                    <div id="gdrive-live-preview-box" class="gdrive-live-preview-box hidden">
+                        <div class="preview-box-badge">✨ 1-betining ko'rinishi (Prevyu):</div>
+                        <div class="preview-box-card">
+                            <div class="preview-box-media">
+                                <img id="gdrive-preview-img" src="" alt="Prevyu" onerror="this.src=generateDocumentCoverSvg('Mavzu', 'pptx', 1)">
+                                <span class="preview-box-tag" id="preview-box-tag">1-Taqdimot</span>
+                            </div>
+                            <div class="preview-box-details">
+                                <h4 id="preview-box-title">Mavzu nomi</h4>
+                                <p id="preview-box-sub">Fan: Raqamli emotsional intelekt</p>
+                                <div class="preview-box-meta">
+                                    <span class="preview-status-success">✓ Google Disk havolasi ulandi</span>
+                                    <span class="preview-count-meta" id="preview-box-count">Yuklab olindi: 72 marta</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="gdrive-submit-row">
+                        <button type="button" class="btn btn-primary btn-upload-now" id="btn-save-gdrive-file">
+                            <span>💾 Google Disk faylini saqlash va ulash</span>
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btn-cancel-edit-slot" style="display:none;" onclick="cancelSlotEditing()">
+                            <span>Bekor qilish</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="upload-controls-grid">
-                    <div class="control-group">
-                        <label for="upload-target-category">📌 Qaysi bo'limga tegishli:</label>
-                        <select id="upload-target-category" class="select-input">
-                            <option value="lecture">📖 Ma'ruzalar matnlari (1-15)</option>
-                            <option value="practical">✍️ Amaliy topshiriqlar (1-15)</option>
-                            <option value="test">📝 Test savollari (1-15)</option>
-                            <option value="resource">📚 Qo'shimcha adabiyot va materiallar</option>
-                        </select>
+                <!-- 2. LOCAL FILE UPLOAD PANEL (Optional direct file upload) -->
+                <div id="local-upload-panel" class="upload-panel-section" style="display:none;">
+                    <div class="upload-dropzone" id="main-dropzone">
+                        <input type="file" id="universal-file-input" class="file-input-hidden" multiple accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.rar,.png,.jpg,.jpeg,.mp3,.mp4">
+                        <div class="dropzone-content">
+                            <div class="dropzone-icon">☁️</div>
+                            <h4>Faylni shu yerga sudrab tashlang yoki <span class="browse-link">tanlash uchun bosing</span></h4>
+                            <p class="dropzone-hint">Formatlar: PDF, Word (.docx, .doc), PowerPoint (.pptx), Excel (.xlsx), ZIP, Rasm yoki Audio</p>
+                            <div class="selected-file-preview hidden" id="selected-file-preview">
+                                <span class="selected-file-icon">📄</span>
+                                <span class="selected-file-name" id="selected-file-name">fayl.pdf</span>
+                                <span class="selected-file-size" id="selected-file-size">(0 KB)</span>
+                                <button type="button" class="btn-clear-selection" id="btn-clear-selection">&times;</button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="control-group" id="slot-select-group">
-                        <label for="upload-target-slot">🎯 Mavzuni tanlang:</label>
-                        <select id="upload-target-slot" class="select-input">
-                            <!-- Populated dynamically with 15 options -->
-                        </select>
-                    </div>
+                    <div class="upload-controls-grid">
+                        <div class="control-group">
+                            <label for="upload-file-desc">💬 Izoh yoki fayl nomi (ixtiyoriy):</label>
+                            <input type="text" id="upload-file-desc" class="text-input" placeholder="Masalan: 1-ma'ruza to'liq taqdimot slayd...">
+                        </div>
 
-                    <div class="control-group">
-                        <label for="upload-file-desc">💬 Izoh yoki fayl nomi (ixtiyoriy):</label>
-                        <input type="text" id="upload-file-desc" class="text-input" placeholder="Masalan: 1-ma'ruza to'liq taqdimot slayd...">
-                    </div>
-
-                    <div class="control-group action-group">
-                        <label>&nbsp;</label>
-                        <button class="btn btn-primary btn-upload-now" id="btn-save-uploaded-file">
-                            <span>💾 Faylni saqlash</span>
-                        </button>
+                        <div class="control-group action-group">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary btn-upload-now" id="btn-save-uploaded-file">
+                                <span>💾 Lokal faylni saqlash</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

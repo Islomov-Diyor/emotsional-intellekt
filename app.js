@@ -52,7 +52,99 @@ const AdminAuth = {
 };
 
 // =============================================================================
-// 1. FILE MANAGER - FAYLLARNI SAQLASH VA BOSHQARISH TIZIMI
+// 1. GOOGLE DRIVE YORDAMCHI FUNKSIYALARI VA 1-BET PREVYU GENERATORI
+// =============================================================================
+function parseGoogleDriveUrl(url) {
+    if (!url) return null;
+    url = url.trim();
+
+    let fileId = null;
+    // Pattern 1: /file/d/ID or /d/ID
+    const dMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (dMatch && dMatch[1]) {
+        fileId = dMatch[1];
+    }
+    // Pattern 2: id=ID
+    if (!fileId) {
+        const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (idMatch && idMatch[1]) {
+            fileId = idMatch[1];
+        }
+    }
+    // Pattern 3: direct ID string (typically 25+ alphanumeric characters)
+    if (!fileId && /^[a-zA-Z0-9_-]{25,65}$/.test(url)) {
+        fileId = url;
+    }
+
+    if (!fileId) return null;
+
+    return {
+        fileId,
+        viewUrl: `https://drive.google.com/file/d/${fileId}/view?usp=sharing`,
+        previewUrl: `https://drive.google.com/file/d/${fileId}/preview`,
+        downloadUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
+        thumbnailUrl: `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`
+    };
+}
+
+function generateDocumentCoverSvg(title = 'Mavzu taqdimoti', ext = 'pptx', slotNumber = 1) {
+    const bgColors = {
+        pptx: '#c2410c',
+        ppt: '#c2410c',
+        docx: '#1d4ed8',
+        doc: '#1d4ed8',
+        pdf: '#b91c1c',
+        xlsx: '#15803d',
+        xls: '#15803d',
+        zip: '#6d28d9'
+    };
+    const accent = bgColors[(ext || 'pptx').toLowerCase()] || '#0284c7';
+    const cleanTitle = (title || 'Mavzu taqdimoti')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    const shortTitle = cleanTitle.length > 50 ? cleanTitle.substring(0, 48) + '...' : cleanTitle;
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+        <defs>
+            <linearGradient id="bg_${slotNumber}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="${accent}" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#0f172a" stop-opacity="1"/>
+            </linearGradient>
+            <pattern id="grid_${slotNumber}" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+            </pattern>
+        </defs>
+        <rect width="800" height="450" fill="url(#bg_${slotNumber})"/>
+        <rect width="800" height="450" fill="url(#grid_${slotNumber})"/>
+        <rect x="25" y="25" width="750" height="400" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
+        <circle cx="85" cy="85" r="28" fill="rgba(255,255,255,0.2)"/>
+        <text x="85" y="93" font-family="'Inter', -apple-system, sans-serif" font-size="22" fill="#ffffff" text-anchor="middle" font-weight="900">№${slotNumber}</text>
+        <text x="130" y="76" font-family="'Inter', -apple-system, sans-serif" font-size="14" fill="#94a3b8" letter-spacing="1.5" font-weight="700">FAN: RAQAMLI EMOTSIONAL INTELEKT</text>
+        <text x="130" y="100" font-family="'Inter', -apple-system, sans-serif" font-size="16" fill="#38bdf8" font-weight="800">${(ext || 'PPTX').toUpperCase()} • 1-SAHIFA PREVYUSI</text>
+        <line x1="50" y1="135" x2="750" y2="135" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+        <text x="50" y="215" font-family="'Inter', -apple-system, sans-serif" font-size="32" fill="#ffffff" font-weight="900">
+            ${shortTitle}
+        </text>
+        <text x="50" y="265" font-family="'Inter', -apple-system, sans-serif" font-size="18" fill="#cbd5e1" font-weight="500">
+            O'quv-uslubiy material • Google Disk orqali ulandi
+        </text>
+        <rect x="50" y="340" width="220" height="44" rx="10" fill="#38bdf8"/>
+        <text x="160" y="368" font-family="'Inter', -apple-system, sans-serif" font-size="16" fill="#0f172a" font-weight="800" text-anchor="middle">Google Diskda ochish ↗</text>
+        <circle cx="710" cy="360" r="32" fill="rgba(255,255,255,0.1)"/>
+        <text x="710" y="369" font-family="'Inter', -apple-system, sans-serif" font-size="24" fill="#ffffff" text-anchor="middle">📄</text>
+    </svg>`;
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+
+function handlePreviewImgError(img, ext, title, slotNumber) {
+    if (!img) return;
+    img.onerror = null;
+    img.src = generateDocumentCoverSvg(title, ext, slotNumber);
+}
+
+// =============================================================================
+// FILE MANAGER - FAYLLARNI SAQLASH VA BOSHQARISH TIZIMI
 // =============================================================================
 class FileStorageManager {
     constructor() {
@@ -74,6 +166,13 @@ class FileStorageManager {
             this.loadFromLocalStorage();
             this.isReady = true;
         }
+
+        // Agar foydalanuvchida hali fayllar bo'lmasa, defaultPlatformMaterials bilan to'ldiramiz
+        if (this.memoryFiles.length === 0 && typeof defaultPlatformMaterials !== 'undefined') {
+            this.memoryFiles = JSON.parse(JSON.stringify(defaultPlatformMaterials));
+            this.saveToLocalStorage();
+        }
+
         this.updateBadgesAndUI();
     }
 
@@ -110,10 +209,10 @@ class FileStorageManager {
 
     saveToLocalStorage() {
         try {
-            // LocalStorage has ~5MB limit, keep metadata and small data
-            localStorage.setItem('rei_uploaded_files', JSON.stringify(this.memoryFiles.slice(-50)));
+            // Google Drive yozuvlari yengil (faqat link va meta), to'liq sig'adi
+            localStorage.setItem('rei_uploaded_files', JSON.stringify(this.memoryFiles.slice(-100)));
         } catch (e) {
-            console.warn('LocalStorage limit oshdi:', e);
+            console.warn('LocalStorage saqlashda ogohlantirish:', e);
         }
     }
 
@@ -135,6 +234,67 @@ class FileStorageManager {
         }
     }
 
+    async saveGoogleDriveFile({ slotId, category, name, driveUrl, type, subject, downloadsCount, desc }) {
+        if (!AdminAuth.isAdmin()) {
+            showToast("Kechirasiz, yangi fayl ulash faqat sayt egasi (Admin) uchun ochiq!", "danger");
+            if (window.openAdminModal) window.openAdminModal();
+            throw new Error("Ruxsatsiz amal: sayt egasi emassiz.");
+        }
+
+        const parsed = parseGoogleDriveUrl(driveUrl);
+        if (!parsed) {
+            throw new Error("Noto'g'ri Google Disk havolasi kiritildi!");
+        }
+
+        const id = 'gdrive_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const ext = (type || (name.split('.').pop() || 'pptx')).toLowerCase();
+
+        const fileRecord = {
+            id,
+            name: name || `${slotId}-Mavzu materiallari.${ext}`,
+            subject: subject || "Fan: Raqamli emotsional intelekt",
+            size: ext === 'pptx' ? 14200000 : ext === 'pdf' ? 2400000 : 950000,
+            type: ext,
+            category: category || 'lecture',
+            slotId: parseInt(slotId) || 1,
+            desc: desc || '',
+            uploadedAt: new Date().toLocaleString('uz-UZ'),
+            isGoogleDrive: true,
+            driveId: parsed.fileId,
+            driveUrl: parsed.viewUrl,
+            previewUrl: parsed.previewUrl,
+            downloadUrl: parsed.downloadUrl,
+            thumbnailUrl: parsed.thumbnailUrl,
+            downloadsCount: parseInt(downloadsCount) || 72,
+            dataUrl: ''
+        };
+
+        if (this.db) {
+            try {
+                await new Promise((resolve, reject) => {
+                    const tx = this.db.transaction([this.storeName], 'readwrite');
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.put(fileRecord);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (e) {
+                console.warn("DB ga saqlashda xato:", e);
+            }
+        }
+
+        const existingIdx = this.memoryFiles.findIndex(f => f.category === fileRecord.category && f.slotId === fileRecord.slotId && fileRecord.slotId > 0);
+        if (existingIdx !== -1) {
+            this.memoryFiles[existingIdx] = fileRecord;
+        } else {
+            this.memoryFiles.unshift(fileRecord);
+        }
+
+        this.saveToLocalStorage();
+        this.updateBadgesAndUI();
+        return fileRecord;
+    }
+
     async saveFile({ name, size, type, category, slotId, desc, fileObj }) {
         if (!AdminAuth.isAdmin()) {
             showToast("Kechirasiz, yangi fayl yuklash faqat sayt egasi (Admin) uchun ochiq!", "danger");
@@ -148,12 +308,15 @@ class FileStorageManager {
         const fileRecord = {
             id,
             name: name || fileObj.name,
+            subject: "Fan: Raqamli emotsional intelekt",
             size: size || fileObj.size,
             type: type || fileObj.type || this.getTypeFromExt(fileObj.name),
-            category: category || 'lecture', // lecture, practical, test, resource
-            slotId: parseInt(slotId) || 0,   // 1..15 or 0 (general)
+            category: category || 'lecture',
+            slotId: parseInt(slotId) || 0,
             desc: desc || '',
             uploadedAt: new Date().toLocaleString('uz-UZ'),
+            downloadsCount: 15,
+            isGoogleDrive: false,
             dataUrl
         };
 
@@ -167,8 +330,6 @@ class FileStorageManager {
             });
         }
 
-        // Update memory cache
-        // If this slot already had a file in this category, replace or keep
         const existingIdx = this.memoryFiles.findIndex(f => f.category === fileRecord.category && f.slotId === fileRecord.slotId && fileRecord.slotId > 0);
         if (existingIdx !== -1) {
             this.memoryFiles[existingIdx] = fileRecord;
@@ -192,6 +353,7 @@ class FileStorageManager {
     }
 
     getTypeFromExt(filename) {
+        if (!filename) return 'pptx';
         const ext = (filename.split('.').pop() || '').toLowerCase();
         return ext;
     }
@@ -225,33 +387,66 @@ class FileStorageManager {
         }
 
         if (this.db) {
-            await new Promise((resolve, reject) => {
-                const tx = this.db.transaction([this.storeName], 'readwrite');
-                const store = tx.objectStore(this.storeName);
-                const req = store.delete(id);
-                req.onsuccess = () => resolve();
-                req.onerror = () => reject(req.error);
-            });
+            try {
+                await new Promise((resolve, reject) => {
+                    const tx = this.db.transaction([this.storeName], 'readwrite');
+                    const store = tx.objectStore(this.storeName);
+                    const req = store.delete(id);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            } catch (e) {}
         }
         this.memoryFiles = this.memoryFiles.filter(f => f.id !== id);
         this.saveToLocalStorage();
         this.updateBadgesAndUI();
     }
 
+    recordDownload(id) {
+        const file = this.memoryFiles.find(f => f.id === id);
+        if (!file) return;
+        file.downloadsCount = (file.downloadsCount || 0) + 1;
+
+        const countEl = document.getElementById(`stat-count-${id}`);
+        if (countEl) countEl.textContent = file.downloadsCount;
+
+        if (this.db) {
+            try {
+                const tx = this.db.transaction([this.storeName], 'readwrite');
+                const store = tx.objectStore(this.storeName);
+                store.put(file);
+            } catch (e) {}
+        }
+        this.saveToLocalStorage();
+    }
+
     downloadFile(id) {
         const file = this.memoryFiles.find(f => f.id === id);
-        if (!file || !file.dataUrl) {
-            showToast('Fayl topilmadi yoki yuklab bo‘lmadi', 'danger');
+        if (!file) {
+            showToast('Fayl topilmadi', 'danger');
             return;
         }
 
-        const link = document.createElement('a');
-        link.href = file.dataUrl;
-        link.download = file.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast(`"${file.name}" yuklab olindi!`, 'success');
+        this.recordDownload(id);
+
+        if (file.isGoogleDrive) {
+            showToast(`"${file.name}" Google Diskdan ochilmoqda...`, 'success');
+            const targetUrl = file.driveUrl || file.viewUrl || file.downloadUrl || `https://drive.google.com/file/d/${file.driveId}/view`;
+            window.open(targetUrl, '_blank');
+            return;
+        }
+
+        if (file.dataUrl) {
+            const link = document.createElement('a');
+            link.href = file.dataUrl;
+            link.download = file.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`"${file.name}" yuklab olindi!`, 'success');
+        } else {
+            showToast('Lokal fayl mazmuni topilmadi', 'warning');
+        }
     }
 
     getFileForSlot(category, slotId) {
@@ -587,21 +782,33 @@ window.openLectureModal = function(id) {
     `;
 
     if (attachedFile) {
+        const ext = (attachedFile.type || fileManager.getTypeFromExt(attachedFile.name) || 'pptx').toLowerCase();
+        const safeTitleEscaped = lec.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeNameEscaped = attachedFile.name.replace(/"/g, '&quot;');
+        const thumbnailUrl = attachedFile.thumbnailUrl || (attachedFile.driveId ? `https://drive.google.com/thumbnail?id=${attachedFile.driveId}&sz=w800` : generateDocumentCoverSvg(lec.title, ext, id));
+
         fileSectionHtml += `
-            <div class="modal-file-list">
-                <div class="modal-file-item">
-                    <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
-                        <span style="font-size:1.5rem;">${fileManager.getFileIcon(attachedFile.name)}</span>
-                        <div>
-                            <div style="font-weight:600; font-size:0.9rem;">${attachedFile.name}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">${fileManager.formatFileSize(attachedFile.size)} • ${attachedFile.uploadedAt}</div>
-                        </div>
+            <div class="modal-gdrive-preview-card" style="display:flex; gap:1rem; align-items:center; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:0.85rem; margin-bottom:1rem; flex-wrap:wrap;">
+                <div style="width:140px; height:85px; border-radius:8px; overflow:hidden; position:relative; background:#0f172a; flex-shrink:0; cursor:pointer;" onclick="fileManager.downloadFile('${attachedFile.id}')">
+                    <img src="${thumbnailUrl}" alt="${safeTitleEscaped}" style="width:100%; height:100%; object-fit:cover;" onerror="handlePreviewImgError(this, '${ext}', '${safeTitleEscaped}', ${id})">
+                    <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.75); color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:4px;">${ext.toUpperCase()}</span>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:0.75rem; color:var(--primary-600); font-weight:700; text-transform:uppercase;">Fan: Raqamli emotsional intelekt</div>
+                    <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary);">${attachedFile.name}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">
+                        <span>${fileManager.formatFileSize(attachedFile.size)}</span> • 
+                        <span style="color:#0284c7; font-weight:700;">📥 Yuklab olindi: <b id="stat-count-${attachedFile.id}">${attachedFile.downloadsCount || 72}</b> marta</span>
                     </div>
-                    <div style="display:flex; gap:0.5rem;">
-                        <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${attachedFile.id}')">⬇️ Yuklab olish</button>
-                        <button class="btn btn-outline-sm" onclick="openFilePreview('${attachedFile.id}')">👁️ Ko'rish</button>
-                        ${AdminAuth.isAdmin() ? `<button class="btn btn-danger-sm" onclick="deleteAndRefreshLecture(${id}, '${attachedFile.id}')" title="O'chirish">🗑️</button>` : ''}
-                    </div>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${attachedFile.id}')" title="Google Diskdan ochish va yuklab olish">
+                        ⬇️ Yuklab olish
+                    </button>
+                    <button class="btn btn-outline-sm" onclick="openFilePreview('${attachedFile.id}')" title="Prevyu ko'rish">
+                        👁️ Prevyu
+                    </button>
+                    ${AdminAuth.isAdmin() ? `<button class="btn btn-danger-sm" onclick="deleteAndRefreshLecture(${id}, '${attachedFile.id}')" title="O'chirish">🗑️</button>` : ''}
                 </div>
             </div>
         `;
@@ -609,11 +816,11 @@ window.openLectureModal = function(id) {
         if (AdminAuth.isAdmin()) {
             fileSectionHtml += `
                 <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
-                    Hozircha ma'ruza fayli (Word, PDF, Taqdimot) yuklanmagan. O'zingiz kompyuteringizdan yuklashingiz mumkin:
+                    Hozircha ushbu ma'ruza uchun Google Disk havolasi ulanmagan. O'zingiz biriktirishingiz mumkin:
                 </p>
                 <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                     <button class="btn btn-primary btn-sm" onclick="openFastUploadForSlot('lecture', ${id})">
-                        ➕ Ushbu ma'ruzaga fayl biriktirish
+                        🔗 Ushbu ma'ruzaga Google Disk havolasini ulash
                     </button>
                 </div>
             `;
@@ -730,21 +937,33 @@ window.openPracticalModal = function(id) {
     `;
 
     if (attachedFile) {
+        const ext = (attachedFile.type || fileManager.getTypeFromExt(attachedFile.name) || 'docx').toLowerCase();
+        const safeTitleEscaped = p.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeNameEscaped = attachedFile.name.replace(/"/g, '&quot;');
+        const thumbnailUrl = attachedFile.thumbnailUrl || (attachedFile.driveId ? `https://drive.google.com/thumbnail?id=${attachedFile.driveId}&sz=w800` : generateDocumentCoverSvg(p.title, ext, id));
+
         fileSectionHtml += `
-            <div class="modal-file-list">
-                <div class="modal-file-item">
-                    <div style="display:flex; align-items:center; gap:0.5rem; overflow:hidden;">
-                        <span style="font-size:1.5rem;">${fileManager.getFileIcon(attachedFile.name)}</span>
-                        <div>
-                            <div style="font-weight:600; font-size:0.9rem;">${attachedFile.name}</div>
-                            <div style="font-size:0.75rem; color:var(--text-muted);">${fileManager.formatFileSize(attachedFile.size)} • ${attachedFile.uploadedAt}</div>
-                        </div>
+            <div class="modal-gdrive-preview-card" style="display:flex; gap:1rem; align-items:center; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:0.85rem; margin-bottom:1rem; flex-wrap:wrap;">
+                <div style="width:140px; height:85px; border-radius:8px; overflow:hidden; position:relative; background:#0f172a; flex-shrink:0; cursor:pointer;" onclick="fileManager.downloadFile('${attachedFile.id}')">
+                    <img src="${thumbnailUrl}" alt="${safeTitleEscaped}" style="width:100%; height:100%; object-fit:cover;" onerror="handlePreviewImgError(this, '${ext}', '${safeTitleEscaped}', ${id})">
+                    <span style="position:absolute; bottom:4px; left:4px; background:rgba(0,0,0,0.75); color:white; font-size:0.65rem; font-weight:700; padding:2px 6px; border-radius:4px;">${ext.toUpperCase()}</span>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:0.75rem; color:var(--primary-600); font-weight:700; text-transform:uppercase;">Fan: Raqamli emotsional intelekt</div>
+                    <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary);">${attachedFile.name}</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.25rem;">
+                        <span>${fileManager.formatFileSize(attachedFile.size)}</span> • 
+                        <span style="color:#0284c7; font-weight:700;">📥 Yuklab olindi: <b id="stat-count-${attachedFile.id}">${attachedFile.downloadsCount || 54}</b> marta</span>
                     </div>
-                    <div style="display:flex; gap:0.5rem;">
-                        <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${attachedFile.id}')">⬇️ Yuklab olish</button>
-                        <button class="btn btn-outline-sm" onclick="openFilePreview('${attachedFile.id}')">👁️ Ko'rish</button>
-                        ${AdminAuth.isAdmin() ? `<button class="btn btn-danger-sm" onclick="deleteAndRefreshPractical(${id}, '${attachedFile.id}')" title="O'chirish">🗑️</button>` : ''}
-                    </div>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:center;">
+                    <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${attachedFile.id}')" title="Google Diskdan ochish va yuklab olish">
+                        ⬇️ Yuklab olish
+                    </button>
+                    <button class="btn btn-outline-sm" onclick="openFilePreview('${attachedFile.id}')" title="Prevyu ko'rish">
+                        👁️ Prevyu
+                    </button>
+                    ${AdminAuth.isAdmin() ? `<button class="btn btn-danger-sm" onclick="deleteAndRefreshPractical(${id}, '${attachedFile.id}')" title="O'chirish">🗑️</button>` : ''}
                 </div>
             </div>
         `;
@@ -752,10 +971,10 @@ window.openPracticalModal = function(id) {
         if (AdminAuth.isAdmin()) {
             fileSectionHtml += `
                 <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
-                    Ushbu amaliy topshiriq uchun fayl (Word shablon, ko'rsatma yoki topshiriq matni) yuklash:
+                    Ushbu amaliy topshiriq uchun Google Disk havolasini ulash:
                 </p>
                 <button class="btn btn-primary btn-sm" onclick="openFastUploadForSlot('practical', ${id})">
-                    ➕ Topshiriq faylini yuklash
+                    🔗 Topshiriq faylini ulash
                 </button>
             `;
         } else {
@@ -877,10 +1096,14 @@ function renderQuizModal(test) {
     let attachedFileBar = '';
     if (attachedFile) {
         attachedFileBar = `
-            <div style="background:var(--bg-secondary); padding:0.6rem 1rem; border-radius:8px; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:0.85rem;">📎 Biriktirilgan test fayli: <b>${attachedFile.name}</b></span>
-                <div style="display:flex; gap:0.5rem;">
-                    <button class="btn btn-outline-sm" onclick="fileManager.downloadFile('${attachedFile.id}')">⬇️ Yuklab olish</button>
+            <div style="background:var(--bg-secondary); border:1px solid var(--border-color); padding:0.75rem 1rem; border-radius:10px; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <div>
+                    <span style="font-size:0.85rem; font-weight:700;">📎 Biriktirilgan test fayli: <b>${attachedFile.name}</b></span>
+                    <span style="font-size:0.75rem; color:#0284c7; margin-left:0.5rem;">📥 ${attachedFile.downloadsCount || 76} marta ochilgan</span>
+                </div>
+                <div style="display:flex; gap:0.4rem;">
+                    <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${attachedFile.id}')">⬇️ Ochish / Yuklab olish</button>
+                    <button class="btn btn-outline-sm" onclick="openFilePreview('${attachedFile.id}')">👁️ Prevyu</button>
                     ${AdminAuth.isAdmin() ? `<button class="btn btn-danger-sm" onclick="deleteFileFromHub('${attachedFile.id}'); renderQuizModal(testsData.find(t => t.id === ${test.id}));" title="O'chirish">🗑️</button>` : ''}
                 </div>
             </div>
@@ -889,8 +1112,8 @@ function renderQuizModal(test) {
         if (AdminAuth.isAdmin()) {
             attachedFileBar = `
                 <div style="background:var(--bg-secondary); padding:0.5rem 1rem; border-radius:8px; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.85rem; color:var(--text-muted);">Ushbu test uchun savollar faylini yuklash:</span>
-                    <button class="btn btn-outline-sm" onclick="openFastUploadForSlot('test', ${test.id})">➕ Test fayli yuklash</button>
+                    <span style="font-size:0.85rem; color:var(--text-muted);">Ushbu test uchun Google Disk havolasini ulash:</span>
+                    <button class="btn btn-outline-sm" onclick="openFastUploadForSlot('test', ${test.id})">🔗 Test havolasini ulash</button>
                 </div>
             `;
         } else {
@@ -2284,10 +2507,44 @@ function initGlossary() {
 }
 
 // =============================================================================
-// 10. FAYLLAR MARKAZI (FILE HUB & UPLOAD ENGINE)
+// 10. FAYLLAR MARKAZI (FILE HUB & GOOGLE DRIVE ENGINE)
 // =============================================================================
 let currentFileHubCategory = 'all';
 let currentSelectedFile = null;
+let currentEditingFileId = null;
+
+window.switchUploadMode = function(mode) {
+    const btnGdrive = document.getElementById('btn-mode-gdrive');
+    const btnLocal = document.getElementById('btn-mode-local');
+    const panelGdrive = document.getElementById('gdrive-upload-panel');
+    const panelLocal = document.getElementById('local-upload-panel');
+
+    if (mode === 'gdrive') {
+        if (btnGdrive) btnGdrive.classList.add('active');
+        if (btnLocal) btnLocal.classList.remove('active');
+        if (panelGdrive) panelGdrive.style.display = 'block';
+        if (panelLocal) panelLocal.style.display = 'none';
+    } else {
+        if (btnGdrive) btnGdrive.classList.remove('active');
+        if (btnLocal) btnLocal.classList.add('active');
+        if (panelGdrive) panelGdrive.style.display = 'none';
+        if (panelLocal) panelLocal.style.display = 'block';
+    }
+};
+
+window.cancelSlotEditing = function() {
+    currentEditingFileId = null;
+    const cancelBtn = document.getElementById('btn-cancel-edit-slot');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    const heading = document.getElementById('uploader-heading-text');
+    if (heading) heading.textContent = 'Fayl ulash va boshqarish';
+    const urlInput = document.getElementById('gdrive-url-input');
+    if (urlInput) urlInput.value = '';
+    const nameInput = document.getElementById('gdrive-file-name');
+    if (nameInput) nameInput.value = '';
+    const previewBox = document.getElementById('gdrive-live-preview-box');
+    if (previewBox) previewBox.classList.add('hidden');
+};
 
 function initFileHub() {
     // 1. Populate category slot dropdown
@@ -2332,11 +2589,183 @@ function initFileHub() {
     }
 
     if (catSelect) {
-        catSelect.addEventListener('change', updateSlotOptions);
+        catSelect.addEventListener('change', () => {
+            updateSlotOptions();
+            updateLivePreviewFromInputs();
+        });
         updateSlotOptions();
     }
 
-    // 2. Drag & Drop handling
+    if (slotSelect) {
+        slotSelect.addEventListener('change', updateLivePreviewFromInputs);
+    }
+
+    // 2. Google Drive Link input & Live Preview
+    const gdriveUrlInput = document.getElementById('gdrive-url-input');
+    const gdriveStatus = document.getElementById('gdrive-url-status');
+    const livePreviewBox = document.getElementById('gdrive-live-preview-box');
+    const previewImg = document.getElementById('gdrive-preview-img');
+    const previewTitle = document.getElementById('preview-box-title');
+    const previewSub = document.getElementById('preview-box-sub');
+    const previewTag = document.getElementById('preview-box-tag');
+    const previewCount = document.getElementById('preview-box-count');
+    const fileNameInput = document.getElementById('gdrive-file-name');
+    const fileTypeSelect = document.getElementById('gdrive-file-type');
+    const saveGdriveBtn = document.getElementById('btn-save-gdrive-file');
+    const pasteBtn = document.getElementById('btn-paste-gdrive');
+
+    function updateLivePreviewFromInputs() {
+        if (!gdriveUrlInput) return;
+        const url = gdriveUrlInput.value.trim();
+        const parsed = parseGoogleDriveUrl(url);
+
+        const cat = catSelect ? catSelect.value : 'lecture';
+        const slotId = slotSelect ? parseInt(slotSelect.value) || 1 : 1;
+        const ext = fileTypeSelect ? fileTypeSelect.value : 'pptx';
+
+        let sourceList = typeof lecturesData !== 'undefined' ? lecturesData : [];
+        let prefix = "Ma'ruza";
+        if (cat === 'practical') {
+            sourceList = typeof practicalsData !== 'undefined' ? practicalsData : [];
+            prefix = "Amaliy ish";
+        } else if (cat === 'test') {
+            sourceList = typeof testsData !== 'undefined' ? testsData : [];
+            prefix = "Test";
+        }
+
+        const foundItem = sourceList.find(x => x.id === slotId);
+        const autoTitle = foundItem ? foundItem.title : `${slotId}-Mavzu materiallari`;
+
+        if (parsed) {
+            if (livePreviewBox) livePreviewBox.classList.remove('hidden');
+            if (previewImg) {
+                previewImg.onerror = () => handlePreviewImgError(previewImg, ext, autoTitle, slotId);
+                previewImg.src = parsed.thumbnailUrl;
+            }
+            if (previewTitle) previewTitle.textContent = fileNameInput && fileNameInput.value.trim() ? fileNameInput.value.trim() : `${slotId}-Mavzu: ${autoTitle}`;
+            if (previewTag) previewTag.textContent = `${slotId}-${ext === 'pptx' ? 'Taqdimot' : ext.toUpperCase()}`;
+            if (previewSub) previewSub.textContent = `Fan: Raqamli emotsional intelekt`;
+            if (previewCount) {
+                const cnt = document.getElementById('gdrive-downloads-count');
+                previewCount.textContent = `Yuklab olindi: ${cnt ? cnt.value : 72} marta`;
+            }
+            if (gdriveStatus) {
+                gdriveStatus.innerHTML = `<span style="color:var(--success); font-weight:700;">✓ Google Disk ID aniqlandi (${parsed.fileId.substring(0, 8)}...). 1-bet prevyusi tayyor!</span>`;
+            }
+            // Auto fill file name if empty
+            if (fileNameInput && !fileNameInput.value.trim()) {
+                fileNameInput.value = `${slotId}-Mavzu: ${autoTitle}.${ext}`;
+            }
+        } else if (url.length > 5) {
+            if (gdriveStatus) {
+                gdriveStatus.innerHTML = `<span style="color:var(--warning); font-weight:600;">⚠️ Havoladan Google Disk ID aniqlanmadi. Iltimos, to'g'ri ommaviy havolani kiriting.</span>`;
+            }
+        } else {
+            if (livePreviewBox) livePreviewBox.classList.add('hidden');
+            if (gdriveStatus) {
+                gdriveStatus.textContent = "Linkni qo'yishingiz bilan 1-sahifa prevyusi pastda avtomatik chiqadi";
+            }
+        }
+    }
+
+    if (gdriveUrlInput) {
+        gdriveUrlInput.addEventListener('input', updateLivePreviewFromInputs);
+        gdriveUrlInput.addEventListener('change', updateLivePreviewFromInputs);
+    }
+    if (fileNameInput) {
+        fileNameInput.addEventListener('input', updateLivePreviewFromInputs);
+    }
+    if (fileTypeSelect) {
+        fileTypeSelect.addEventListener('change', updateLivePreviewFromInputs);
+    }
+
+    if (pasteBtn && gdriveUrlInput) {
+        pasteBtn.addEventListener('click', async () => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text) {
+                        gdriveUrlInput.value = text;
+                        updateLivePreviewFromInputs();
+                        showToast("Google Disk havolasi qo'yildi!", "success");
+                    }
+                } else {
+                    gdriveUrlInput.focus();
+                }
+            } catch (err) {
+                gdriveUrlInput.focus();
+            }
+        });
+    }
+
+    // Save Google Drive File
+    if (saveGdriveBtn) {
+        saveGdriveBtn.addEventListener('click', async () => {
+            if (!AdminAuth.isAdmin()) {
+                showToast("Fayl ulash faqat sayt egasi (Admin) uchun ochiq!", "warning");
+                openAdminModal();
+                return;
+            }
+
+            const url = gdriveUrlInput ? gdriveUrlInput.value.trim() : '';
+            if (!url) {
+                showToast("Iltimos, Google Disk havolasini kiriting!", "warning");
+                if (gdriveUrlInput) gdriveUrlInput.focus();
+                return;
+            }
+
+            const parsed = parseGoogleDriveUrl(url);
+            if (!parsed) {
+                showToast("Noto'g'ri Google Disk havolasi! Ommaviy havola (Share link) ekanligini tekshiring.", "danger");
+                return;
+            }
+
+            const cat = catSelect ? catSelect.value : 'lecture';
+            const slotId = slotSelect ? parseInt(slotSelect.value) || 1 : 1;
+            const ext = fileTypeSelect ? fileTypeSelect.value : 'pptx';
+            const name = fileNameInput && fileNameInput.value.trim() 
+                ? fileNameInput.value.trim() 
+                : `${slotId}-Mavzu materiallari.${ext}`;
+            const subj = document.getElementById('gdrive-subject-name')?.value.trim() || "Fan: Raqamli emotsional intelekt";
+            const dCount = parseInt(document.getElementById('gdrive-downloads-count')?.value) || 72;
+            const desc = document.getElementById('gdrive-file-desc')?.value.trim() || '';
+
+            saveGdriveBtn.disabled = true;
+            saveGdriveBtn.innerHTML = `<span>⏳ Ulanmoqda...</span>`;
+
+            try {
+                const saved = await fileManager.saveGoogleDriveFile({
+                    slotId,
+                    category: cat,
+                    name,
+                    driveUrl: url,
+                    type: ext,
+                    subject: subj,
+                    downloadsCount: dCount,
+                    desc
+                });
+
+                showToast(`"${saved.name}" muvaffaqiyatli saqlandi! 1-beti avtomatik ulandi.`, "success");
+
+                // Reset form
+                if (gdriveUrlInput) gdriveUrlInput.value = '';
+                if (fileNameInput) fileNameInput.value = '';
+                if (livePreviewBox) livePreviewBox.classList.add('hidden');
+                cancelSlotEditing();
+
+                renderFileHubSlots();
+                renderFilesTable();
+            } catch (err) {
+                console.error(err);
+                showToast("Google Disk faylini ulashda xatolik yuz berdi", "danger");
+            } finally {
+                saveGdriveBtn.disabled = false;
+                saveGdriveBtn.innerHTML = `<span>💾 Google Disk faylini saqlash va ulash</span>`;
+            }
+        });
+    }
+
+    // 3. Local Drag & Drop handling
     const dropzone = document.getElementById('main-dropzone');
     const fileInput = document.getElementById('universal-file-input');
     const selectedPreview = document.getElementById('selected-file-preview');
@@ -2391,7 +2820,7 @@ function initFileHub() {
         });
     }
 
-    // 3. Save File Button
+    // Save Local File Button
     if (saveBtn) {
         saveBtn.addEventListener('click', async () => {
             if (!AdminAuth.isAdmin()) {
@@ -2426,7 +2855,6 @@ function initFileHub() {
 
                 showToast(`"${saved.name}" muvaffaqiyatli saqlandi!`, "success");
 
-                // Reset
                 currentSelectedFile = null;
                 if (fileInput) fileInput.value = '';
                 if (selectedPreview) selectedPreview.classList.add('hidden');
@@ -2439,7 +2867,7 @@ function initFileHub() {
                 showToast("Faylni saqlashda xatolik yuz berdi", "danger");
             } finally {
                 saveBtn.disabled = false;
-                saveBtn.innerHTML = `<span>💾 Faylni saqlash</span>`;
+                saveBtn.innerHTML = `<span>💾 Lokal faylni saqlash</span>`;
             }
         });
     }
@@ -2481,7 +2909,10 @@ function initFileHub() {
                 category: f.category,
                 slotId: f.slotId,
                 desc: f.desc,
-                uploadedAt: f.uploadedAt
+                uploadedAt: f.uploadedAt,
+                isGoogleDrive: !!f.isGoogleDrive,
+                driveUrl: f.driveUrl || '',
+                downloadsCount: f.downloadsCount || 0
             })), null, 2));
             const dlAnchor = document.createElement('a');
             dlAnchor.setAttribute("href", dataStr);
@@ -2506,14 +2937,13 @@ window.renderFileHubSlots = function() {
     const isAdmin = AdminAuth.isAdmin();
 
     if (currentFileHubCategory === 'resource') {
-        // Just general resource slots
         const resources = fileManager.getAllFilesForCategory('resource');
         wrapper.innerHTML = `
             <div style="background:var(--bg-card); padding:1.5rem; border-radius:12px; border:1px solid var(--border-color); margin-bottom:2rem;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
                     <h4>📚 Qo'shimcha adabiyotlar va materiallar ombori</h4>
                     ${isAdmin ? `
-                        <button class="btn btn-primary btn-sm" onclick="openFastUploadForSlot('resource', 0)">➕ Yangi material yuklash</button>
+                        <button class="btn btn-primary btn-sm" onclick="openFastUploadForSlot('resource', 0)">➕ Yangi material ulash</button>
                     ` : `
                         <span style="font-size:0.8rem; color:var(--text-muted);">Mavjud qo'shimcha materiallarni yuklab oling</span>
                     `}
@@ -2523,17 +2953,17 @@ window.renderFileHubSlots = function() {
                 ` : `
                     <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
                         ${resources.map(r => `
-                            <div style="background:var(--bg-secondary); padding:1rem; border-radius:8px; border:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between;">
+                            <div style="background:var(--bg-secondary); padding:1rem; border-radius:12px; border:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between;">
                                 <div style="display:flex; align-items:flex-start; gap:0.75rem;">
-                                    <span style="font-size:1.75rem;">${fileManager.getFileIcon(r.name)}</span>
+                                    <span style="font-size:2rem;">${fileManager.getFileIcon(r.name)}</span>
                                     <div style="overflow:hidden;">
-                                        <div style="font-weight:600; font-size:0.9rem; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${r.name}">${r.name}</div>
-                                        <div style="font-size:0.75rem; color:var(--text-muted);">${fileManager.formatFileSize(r.size)} • ${r.uploadedAt}</div>
-                                        ${r.desc ? `<div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.25rem;">${r.desc}</div>` : ''}
+                                        <div style="font-weight:700; font-size:0.95rem; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${r.name}">${r.name}</div>
+                                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">${fileManager.formatFileSize(r.size)} • ${r.uploadedAt}</div>
+                                        ${r.desc ? `<div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.35rem;">${r.desc}</div>` : ''}
                                     </div>
                                 </div>
-                                <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
-                                    <button class="btn btn-primary btn-sm" style="flex:1;" onclick="fileManager.downloadFile('${r.id}')">⬇️ Yuklab olish</button>
+                                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+                                    <button class="btn btn-primary btn-sm" style="flex:1;" onclick="fileManager.downloadFile('${r.id}')">⬇️ Ochish / Yuklab olish</button>
                                     <button class="btn btn-outline-sm" onclick="openFilePreview('${r.id}')">👁️</button>
                                     ${isAdmin ? `<button class="btn btn-danger-sm" onclick="deleteFileFromHub('${r.id}')" title="O'chirish">🗑️</button>` : ''}
                                 </div>
@@ -2549,13 +2979,16 @@ window.renderFileHubSlots = function() {
     // Determine category to show in 15 slots
     const targetCat = currentFileHubCategory === 'all' ? 'lecture' : currentFileHubCategory;
     let sourceList = typeof lecturesData !== 'undefined' ? lecturesData : [];
-    let catTitle = "15 ta ma'ruza matnlari fayllari";
+    let catTitle = "15 ta ma'ruza taqdimotlari va matnlari (1-beti bilan)";
+    let badgeTypeLabel = "Taqdimot";
     if (targetCat === 'practical') {
         sourceList = typeof practicalsData !== 'undefined' ? practicalsData : [];
-        catTitle = "15 ta amaliy topshiriqlar fayllari";
+        catTitle = "15 ta amaliy topshiriqlar fayllari (1-beti bilan)";
+        badgeTypeLabel = "Amaliy ish";
     } else if (targetCat === 'test') {
         sourceList = typeof testsData !== 'undefined' ? testsData : [];
-        catTitle = "15 ta test savollari fayllari";
+        catTitle = "15 ta test materiallari fayllari (1-beti bilan)";
+        badgeTypeLabel = "Test";
     }
 
     let cardsHtml = '';
@@ -2564,61 +2997,102 @@ window.renderFileHubSlots = function() {
         const title = item ? item.title : `Mavzu ${i}`;
         const attached = fileManager.getFileForSlot(targetCat, i);
 
-        cardsHtml += `
-            <div class="file-slot-card ${attached ? 'has-file' : 'empty-file'}">
-                <div class="slot-header">
-                    <span class="slot-number-badge">№ ${i} - Mavzu</span>
-                    <span style="font-size:0.75rem; color:${attached ? 'var(--success)' : 'var(--warning)'}; font-weight:700;">
-                        ${attached ? '✅ Fayl bor' : '⚪ Joy bo\'sh'}
-                    </span>
-                </div>
-                <h4 class="slot-title">${title}</h4>
-                
-                ${attached ? `
-                    <div class="slot-file-info">
-                        <span class="slot-file-icon">${fileManager.getFileIcon(attached.name)}</span>
-                        <div class="slot-file-details">
-                            <div class="slot-file-name" title="${attached.name}">${attached.name}</div>
-                            <div class="slot-file-size">${fileManager.formatFileSize(attached.size)} • ${attached.uploadedAt}</div>
+        if (attached) {
+            const ext = (attached.type || fileManager.getTypeFromExt(attached.name) || 'pptx').toLowerCase();
+            const safeTitleEscaped = title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safeNameEscaped = attached.name.replace(/"/g, '&quot;');
+            const subj = attached.subject || "Fan: Raqamli emotsional intelekt";
+            const dCount = attached.downloadsCount || 72;
+            const thumbnailUrl = attached.thumbnailUrl || (attached.driveId ? `https://drive.google.com/thumbnail?id=${attached.driveId}&sz=w800` : generateDocumentCoverSvg(title, ext, i));
+
+            cardsHtml += `
+                <div class="file-slot-card gdrive-slot-card has-file">
+                    <div class="slot-preview-wrapper" onclick="fileManager.downloadFile('${attached.id}')" title="Google Diskdan ochish (1-sahifa)">
+                        <img class="slot-preview-img" src="${thumbnailUrl}" alt="${safeTitleEscaped}" loading="lazy" onerror="handlePreviewImgError(this, '${ext}', '${safeTitleEscaped}', ${i})">
+                        <div class="slot-preview-overlay">
+                            <span class="preview-zoom-btn">↗ Google Diskda ochish</span>
+                        </div>
+                        <span class="slot-badge-top-left">№ ${i} - ${badgeTypeLabel}</span>
+                        <span class="slot-badge-top-right file-ext-${ext}">${ext.toUpperCase()}</span>
+                    </div>
+
+                    <div class="slot-content-body">
+                        <div class="slot-subject-label">${subj}</div>
+                        <h4 class="slot-title" title="${safeTitleEscaped}">${title}</h4>
+                        <div class="slot-file-meta-row">
+                            <span class="meta-file-name" title="${safeNameEscaped}">📄 ${attached.name}</span>
+                            <span class="meta-file-size">${fileManager.formatFileSize(attached.size)}</span>
+                        </div>
+                        <div class="slot-download-stat">
+                            <span class="stat-icon">📥</span>
+                            <span>Yuklab olindi: <b id="stat-count-${attached.id}">${dCount}</b> marta</span>
                         </div>
                     </div>
-                    <div class="slot-actions">
-                        <button class="btn btn-primary btn-sm btn-slot-download" onclick="fileManager.downloadFile('${attached.id}')" title="Yuklab olish">
-                            ⬇️ Yuklab olish
+
+                    <div class="slot-card-actions">
+                        <button class="btn btn-primary btn-slot-download-main" onclick="fileManager.downloadFile('${attached.id}')" title="Google Diskdan ochish va yuklab olish">
+                            <span>⬇️ Yuklab olish</span>
                         </button>
-                        <button class="btn btn-outline-sm" onclick="openFilePreview('${attached.id}')" title="Ko'rish">
-                            👁️
+                        <button class="btn btn-outline-sm btn-slot-preview-inline" onclick="openFilePreview('${attached.id}')" title="Prevyu ko'rish">
+                            <span>👁️</span>
                         </button>
                         ${isAdmin ? `
+                            <button class="btn btn-edit-slot-tiny" onclick="openFastUploadForSlot('${targetCat}', ${i}, '${attached.id}')" title="Havolani o'zgartirish">
+                                ✏️
+                            </button>
                             <button class="btn btn-slot-delete" onclick="deleteFileFromHub('${attached.id}')" title="O'chirish">
                                 🗑️
                             </button>
                         ` : ''}
                     </div>
-                ` : `
-                    <div style="background:rgba(59,130,246,0.03); border:1px dashed var(--border-color); border-radius:8px; padding:0.85rem; text-align:center; margin-top:0.5rem;">
-                        <span style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:0.5rem;">
-                            Ushbu mavzu uchun fayl biriktirilmagan
-                        </span>
+                </div>
+            `;
+        } else {
+            cardsHtml += `
+                <div class="file-slot-card empty-file">
+                    <div class="slot-empty-preview" onclick="${isAdmin ? `openFastUploadForSlot('${targetCat}', ${i})` : ''}" title="${isAdmin ? 'Google Disk havolasini ulash' : ''}">
+                        <div class="empty-preview-icon">☁️</div>
+                        <div class="empty-preview-text">Google Disk havolasi ulanmagan</div>
+                        <span class="slot-badge-top-left">№ ${i} - ${badgeTypeLabel}</span>
+                    </div>
+
+                    <div class="slot-content-body">
+                        <div class="slot-subject-label">Fan: Raqamli emotsional intelekt</div>
+                        <h4 class="slot-title">${title}</h4>
+                        <p class="slot-empty-desc">
+                            ${isAdmin ? "Ushbu mavzu uchun Google Diskingizdagi taqdimot, PDF yoki Word fayl havolasini biriktiring." : "Ushbu mavzu bo'yicha material tez kunda yuklanadi."}
+                        </p>
+                    </div>
+
+                    <div class="slot-card-actions">
                         ${isAdmin ? `
-                            <button class="btn-slot-upload" onclick="openFastUploadForSlot('${targetCat}', ${i})">
-                                ➕ Fayl yuklash
+                            <button class="btn btn-primary btn-sm btn-block" onclick="openFastUploadForSlot('${targetCat}', ${i})">
+                                🔗 Google Disk linkini ulash
                             </button>
                         ` : `
-                            <span class="student-slot-empty-pill">📎 Hozircha fayl yo'q</span>
+                            <button class="btn btn-disabled btn-sm btn-block" disabled>
+                                ⏳ Tez kunda
+                            </button>
                         `}
                     </div>
-                `}
-            </div>
-        `;
+                </div>
+            `;
+        }
     }
 
     wrapper.innerHTML = `
-        <div style="margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-            <h3>${catTitle}</h3>
-            <span style="font-size:0.85rem; color:var(--text-muted);">
-                ${isAdmin ? "Har bir mavzuga o'z faylingizni biriktirishingiz mumkin" : "Barcha mavzular bo'yicha fayllarni erkin yuklab olishingiz mumkin"}
-            </span>
+        <div style="margin-bottom:1.25rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+                <h3 style="font-size:1.25rem; font-weight:800;">${catTitle}</h3>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">
+                    Barcha fayllar serverda 0 MB joy egallaydi. 1-beti avtomatik ko'rinadi va ustiga bosganda Google Diskdan ochiladi.
+                </p>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span class="subhead-badge" style="background:rgba(14,165,233,0.1); color:#0284c7; font-weight:700;">
+                    ✓ Google Disk integratsiyasi faol
+                </span>
+            </div>
         </div>
         <div class="file-slots-grid">
             ${cardsHtml}
@@ -2652,7 +3126,7 @@ window.renderFilesTable = function() {
             <div class="empty-files-placeholder">
                 <div class="empty-icon">📂</div>
                 <h4>Fayllar topilmadi</h4>
-                <p>${isAdmin ? "Yuqoridagi yuklash maydoni orqali kompyuteringizdagi ma'ruza, amaliy ish yoki test fayllarini yuklashingiz mumkin." : "Hozircha ushbu bo'limda yuklangan fayllar mavjud emas."}</p>
+                <p>${isAdmin ? "Yuqoridagi yuklash maydoni orqali Google Diskingizdagi taqdimot yoki hujjat linkini ulashingiz mumkin." : "Hozircha ushbu bo'limda yuklangan fayllar mavjud emas."}</p>
             </div>
         `;
         return;
@@ -2667,7 +3141,7 @@ window.renderFilesTable = function() {
         };
         const catLabel = catLabels[f.category] || f.category;
         const slotText = f.slotId > 0 ? `${f.slotId}-mavzu` : 'Umumiy';
-        const ext = fileManager.getTypeFromExt(f.name);
+        const ext = (f.type || fileManager.getTypeFromExt(f.name) || 'pptx').toLowerCase();
 
         return `
             <tr>
@@ -2676,9 +3150,12 @@ window.renderFilesTable = function() {
                     <div style="display:flex; align-items:center; gap:0.75rem;">
                         <span style="font-size:1.5rem;">${fileManager.getFileIcon(f.name)}</span>
                         <div>
-                            <div style="font-weight:600;" title="${f.name}">${f.name}</div>
-                            <span class="file-type-chip file-type-${ext}">${ext}</span>
-                            ${f.desc ? `<span style="font-size:0.75rem; color:var(--text-muted); margin-left:0.5rem;">${f.desc}</span>` : ''}
+                            <div style="font-weight:700; cursor:pointer; color:var(--text-primary);" onclick="fileManager.downloadFile('${f.id}')" title="${f.name}">${f.name}</div>
+                            <div style="display:flex; align-items:center; gap:0.4rem; margin-top:0.25rem;">
+                                <span class="file-type-chip file-type-${ext}">${ext.toUpperCase()}</span>
+                                ${f.isGoogleDrive ? `<span style="font-size:0.7rem; color:#0284c7; background:rgba(2,132,199,0.1); padding:1px 6px; border-radius:4px; font-weight:700;">Google Disk</span>` : ''}
+                                <span style="font-size:0.75rem; color:var(--text-muted); margin-left:0.35rem;">📥 ${f.downloadsCount || 0} marta</span>
+                            </div>
                         </div>
                     </div>
                 </td>
@@ -2687,8 +3164,8 @@ window.renderFilesTable = function() {
                 <td style="font-size:0.8rem; color:var(--text-muted);">${f.uploadedAt}</td>
                 <td>
                     <div style="display:flex; gap:0.4rem;">
-                        <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${f.id}')" title="Yuklab olish">⬇️</button>
-                        <button class="btn btn-outline-sm" onclick="openFilePreview('${f.id}')" title="Ko'rish">👁️</button>
+                        <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${f.id}')" title="Google Diskdan ochish / Yuklab olish">⬇️ Ochish</button>
+                        <button class="btn btn-outline-sm" onclick="openFilePreview('${f.id}')" title="Prevyu ko'rish">👁️</button>
                         ${isAdmin ? `<button class="btn btn-danger-sm" onclick="deleteFileFromHub('${f.id}')" title="O'chirish">🗑️</button>` : ''}
                     </div>
                 </td>
@@ -2715,27 +3192,62 @@ window.renderFilesTable = function() {
     `;
 };
 
-// Fast upload button for a specific slot
-window.openFastUploadForSlot = function(category, slotId) {
+// Fast upload / edit button for a specific slot
+window.openFastUploadForSlot = function(category, slotId, existingFileId = null) {
     if (!AdminAuth.isAdmin()) {
-        showToast("Fayl yuklash faqat sayt egasi (Admin) uchun ochiq!", "warning");
+        showToast("Fayl ulash faqat sayt egasi (Admin) uchun ochiq!", "warning");
         openAdminModal();
         return;
     }
+
     if (window.switchPage) {
         window.switchPage('file-hub');
     }
+
+    // Switch to Google Drive panel by default
+    switchUploadMode('gdrive');
+
     const catSelect = document.getElementById('upload-target-category');
     if (catSelect) {
         catSelect.value = category;
         catSelect.dispatchEvent(new Event('change'));
     }
+
     setTimeout(() => {
         const slotSelect = document.getElementById('upload-target-slot');
         if (slotSelect) slotSelect.value = slotId;
-        const fileInput = document.getElementById('universal-file-input');
-        if (fileInput) fileInput.click();
-    }, 150);
+
+        const heading = document.getElementById('uploader-heading-text');
+        const cancelBtn = document.getElementById('btn-cancel-edit-slot');
+        const urlInput = document.getElementById('gdrive-url-input');
+        const nameInput = document.getElementById('gdrive-file-name');
+        const typeSelect = document.getElementById('gdrive-file-type');
+
+        if (existingFileId) {
+            const existing = fileManager.memoryFiles.find(f => f.id === existingFileId);
+            if (existing) {
+                if (heading) heading.textContent = `№ ${slotId}-mavzu uchun Google Disk havolasini yangilash`;
+                if (urlInput) urlInput.value = existing.driveUrl || '';
+                if (nameInput) nameInput.value = existing.name || '';
+                if (typeSelect) typeSelect.value = existing.type || 'pptx';
+                if (cancelBtn) cancelBtn.style.display = 'inline-block';
+                if (urlInput) urlInput.dispatchEvent(new Event('input'));
+            }
+        } else {
+            if (heading) heading.textContent = `№ ${slotId}-mavzuga Google Disk havolasini ulash`;
+            if (cancelBtn) cancelBtn.style.display = 'inline-block';
+            if (urlInput) {
+                urlInput.value = '';
+                urlInput.focus();
+            }
+        }
+
+        // Scroll to uploader
+        const uploaderCard = document.getElementById('file-hub-upload-card');
+        if (uploaderCard) {
+            uploaderCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 120);
 };
 
 window.deleteFileFromHub = async function(fileId) {
@@ -2744,7 +3256,7 @@ window.deleteFileFromHub = async function(fileId) {
         openAdminModal();
         return;
     }
-    if (confirm("Ushbu faylni xotiradan butunlay o'chirmoqchimisiz?")) {
+    if (confirm("Ushbu faylni ro'yxatdan butunlay o'chirmoqchimisiz?")) {
         await fileManager.deleteFile(fileId);
         showToast("Fayl muvaffaqiyatli o'chirildi!", "warning");
         renderFileHubSlots();
@@ -2765,11 +3277,40 @@ window.openFilePreview = function(fileId) {
     if (!modal || !contentElem) return;
 
     if (titleElem) titleElem.textContent = file.name;
-    if (metaElem) metaElem.textContent = `${fileManager.formatFileSize(file.size)} • ${file.uploadedAt} • ${file.category} (№${file.slotId})`;
-    if (dlBtn) dlBtn.onclick = () => fileManager.downloadFile(file.id);
+    if (metaElem) metaElem.textContent = `${fileManager.formatFileSize(file.size)} • ${file.uploadedAt} • ${file.category} (№${file.slotId}) • 📥 ${file.downloadsCount || 0} marta yuklandi`;
+    
+    if (dlBtn) {
+        dlBtn.onclick = () => fileManager.downloadFile(file.id);
+        dlBtn.innerHTML = `<span>↗ Google Diskda to'liq ochish</span>`;
+    }
 
-    const ext = fileManager.getTypeFromExt(file.name);
+    const ext = (file.type || fileManager.getTypeFromExt(file.name) || 'pptx').toLowerCase();
 
+    // If Google Drive file
+    if (file.isGoogleDrive && file.driveId) {
+        contentElem.innerHTML = `
+            <div style="width:100%; height:75vh; border-radius:12px; overflow:hidden; background:#0f172a; position:relative;">
+                <iframe 
+                    src="https://drive.google.com/file/d/${file.driveId}/preview" 
+                    style="width:100%; height:100%; border:none;" 
+                    allow="autoplay" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+            <div style="margin-top:0.75rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <span style="font-size:0.85rem; color:var(--text-muted);">
+                    💡 Fayl Google Disk orqali yuklanmoqda. Agar prevyu ko'rinmasa, yuqoridagi tugma orqali to'g'ridan-to'g'ri ochishingiz mumkin.
+                </span>
+                <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${file.id}')">
+                    ↗ Google Diskda ochish
+                </button>
+            </div>
+        `;
+        modal.classList.add('active');
+        return;
+    }
+
+    // Local data URL rendering
     if (['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'].includes(ext)) {
         contentElem.innerHTML = `
             <div style="text-align:center; padding:1rem;">

@@ -1867,3 +1867,4 @@ const glossaryData = [
     { term: "TEIQue", definition: "Trait Emotional Intelligence Questionnaire — xususiyatga asoslangan emotsional intelektni o'lchash vositasi." },
     { term: "Virtual empatiya", definition: "Raqamli muhitda (chat, video, ijtimoiy tarmoq) boshqalarning hissiyotlarini sezish va ularga mos munosabatda bo'lish qobiliyati." }
 ];
+
