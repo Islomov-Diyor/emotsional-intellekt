@@ -3488,7 +3488,7 @@ window.handleAdminLogin = function() {
     } else {
         if (errorMsg) {
             errorMsg.classList.remove('hidden');
-            errorMsg.textContent = "Noto'g'ri parol! Boshlang'ich standart parol: admin123";
+            errorMsg.textContent = "Noto'g'ri parol kiritildi! Qayta urinib ko'ring.";
         }
         showToast("Noto'g'ri parol kiritildi!", "danger");
     }
