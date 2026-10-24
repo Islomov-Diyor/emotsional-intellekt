@@ -234,7 +234,7 @@ class FileStorageManager {
         }
     }
 
-    async saveGoogleDriveFile({ slotId, category, name, driveUrl, type, subject, downloadsCount, desc }) {
+    async saveGoogleDriveFile({ id: customId, topic, slotId, category, name, driveUrl, type, subject, downloadsCount, desc }) {
         if (!AdminAuth.isAdmin()) {
             showToast("Kechirasiz, yangi fayl ulash faqat sayt egasi (Admin) uchun ochiq!", "danger");
             if (window.openAdminModal) window.openAdminModal();
@@ -246,17 +246,18 @@ class FileStorageManager {
             throw new Error("Noto'g'ri Google Disk havolasi kiritildi!");
         }
 
-        const id = 'gdrive_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const id = customId || 'gdrive_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         const ext = (type || (name.split('.').pop() || 'pptx')).toLowerCase();
 
         const fileRecord = {
             id,
-            name: name || `${slotId}-Mavzu materiallari.${ext}`,
+            topic: topic || name || "Mavzu",
+            name: name || `${topic || 'Mavzu'}.${ext}`,
             subject: subject || "Fan: Raqamli emotsional intelekt",
             size: ext === 'pptx' ? 14200000 : ext === 'pdf' ? 2400000 : 950000,
             type: ext,
             category: category || 'lecture',
-            slotId: parseInt(slotId) || 1,
+            slotId: parseInt(slotId) || Date.now(),
             desc: desc || '',
             uploadedAt: new Date().toLocaleString('uz-UZ'),
             isGoogleDrive: true,
@@ -265,7 +266,7 @@ class FileStorageManager {
             previewUrl: parsed.previewUrl,
             downloadUrl: parsed.downloadUrl,
             thumbnailUrl: parsed.thumbnailUrl,
-            downloadsCount: parseInt(downloadsCount) || 72,
+            downloadsCount: parseInt(downloadsCount) || 0,
             dataUrl: ''
         };
 
@@ -330,7 +331,7 @@ class FileStorageManager {
             });
         }
 
-        const existingIdx = this.memoryFiles.findIndex(f => f.category === fileRecord.category && f.slotId === fileRecord.slotId && fileRecord.slotId > 0);
+        const existingIdx = this.memoryFiles.findIndex(f => f.id === fileRecord.id);
         if (existingIdx !== -1) {
             this.memoryFiles[existingIdx] = fileRecord;
         } else {
@@ -465,11 +466,23 @@ class FileStorageManager {
         const tests = this.memoryFiles.filter(f => f.category === 'test').length;
         const resources = this.memoryFiles.filter(f => f.category === 'resource').length;
 
-        // Nav badge
+        // Nav badges
         const navBadge = document.getElementById('nav-file-badge');
         if (navBadge) navBadge.textContent = total;
 
-        // Home count
+        const navLecBadge = document.getElementById('nav-lectures-badge');
+        const navPracBadge = document.getElementById('nav-practicals-badge');
+        const navTestBadge = document.getElementById('nav-tests-badge');
+
+        const totalLecCount = (typeof lecturesData !== 'undefined' ? lecturesData.length : 0) + lectures;
+        const totalPracCount = (typeof practicalsData !== 'undefined' ? practicalsData.length : 0) + practicals;
+        const totalTestCount = (typeof testsData !== 'undefined' ? testsData.length : 0) + tests;
+
+        if (navLecBadge) navLecBadge.textContent = totalLecCount;
+        if (navPracBadge) navPracBadge.textContent = totalPracCount;
+        if (navTestBadge) navTestBadge.textContent = totalTestCount;
+
+        // Home counts
         const homeCount = document.getElementById('home-file-count');
         const homeBar = document.getElementById('home-file-bar');
         if (homeCount) {
@@ -477,13 +490,27 @@ class FileStorageManager {
             homeCount.setAttribute('data-count', total);
         }
         if (homeBar) {
-            const pct = Math.min(100, Math.round((total / 45) * 100));
-            homeBar.style.width = pct + '%';
+            homeBar.style.width = Math.min(100, total * 10) + '%';
         }
+
+        const homeLecCount = document.getElementById('home-lectures-count');
+        const homeLecBar = document.getElementById('home-lectures-bar');
+        if (homeLecCount) homeLecCount.textContent = totalLecCount;
+        if (homeLecBar) homeLecBar.style.width = Math.min(100, totalLecCount * 10) + '%';
+
+        const homePracCount = document.getElementById('home-practicals-count');
+        const homePracBar = document.getElementById('home-practicals-bar');
+        if (homePracCount) homePracCount.textContent = totalPracCount;
+        if (homePracBar) homePracBar.style.width = Math.min(100, totalPracCount * 10) + '%';
+
+        const homeTestCount = document.getElementById('home-tests-count');
+        const homeTestBar = document.getElementById('home-tests-bar');
+        if (homeTestCount) homeTestCount.textContent = totalTestCount;
+        if (homeTestBar) homeTestBar.style.width = Math.min(100, totalTestCount * 10) + '%';
 
         // Storage status text
         const statusText = document.getElementById('storage-status-text');
-        if (statusText) statusText.textContent = `Yuklangan: ${total} ta fayl`;
+        if (statusText) statusText.textContent = `Yuklangan: ${total} ta material`;
 
         // Tab counts
         const cntAll = document.getElementById('count-all-files');
@@ -699,69 +726,106 @@ function initModals() {
 }
 
 // =============================================================================
-// 4. MA'RUZALAR MODULI (15 TA MA'RUZA)
+// 4. MA'RUZALAR MODULI
 // =============================================================================
 function initLectures() {
     const grid = document.getElementById('lectures-grid');
     const searchInput = document.getElementById('lecture-search');
     if (!grid) return;
 
-    function renderLectures(list) {
-        grid.innerHTML = '';
-        list.forEach(lec => {
-            const card = document.createElement('div');
-            card.className = `lecture-card card-${lec.color || 'blue'}`;
-            
-            // Check if file is uploaded for this lecture
-            const attachedFile = fileManager.getFileForSlot('lecture', lec.id);
-            const fileBadgeHtml = attachedFile 
-                ? `<span class="card-file-badge attached" title="${attachedFile.name}">📎 Fayl yuklangan</span>`
-                : (AdminAuth.isAdmin() 
-                    ? `<span class="card-file-badge empty" title="O'zingiz fayl biriktirishingiz mumkin">+ Fayl biriktirish</span>` 
-                    : `<span class="card-file-badge" style="opacity:0.65;">📖 Matnli ma'ruza</span>`);
+    window.renderLecturesList = function() {
+        const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const staticList = typeof lecturesData !== 'undefined' ? lecturesData : [];
+        const uploadedList = (fileManager ? fileManager.memoryFiles.filter(f => f.category === 'lecture') : []).map((f, idx) => ({
+            id: f.id,
+            title: f.topic || f.name,
+            excerpt: f.desc || `${f.name} — Ma'ruza taqdimoti va o'quv materiali.`,
+            tag: (f.type || 'pptx').toUpperCase(),
+            color: "blue",
+            isUploaded: true,
+            file: f
+        }));
 
-            card.innerHTML = `
-                <div class="card-top">
-                    <span class="card-number">№ ${lec.id}</span>
-                    <span class="card-tag">${lec.tag || "Ma'ruza"}</span>
-                </div>
-                <h3 class="card-title">${lec.title}</h3>
-                <p class="card-excerpt">${lec.excerpt}</p>
-                <div class="card-footer">
-                    ${fileBadgeHtml}
-                    <button class="btn btn-outline btn-sm" onclick="openLectureModal(${lec.id})">O'qish & Fayl &rarr;</button>
+        let combined = [...staticList, ...uploadedList];
+        if (q) {
+            combined = combined.filter(l => l.title.toLowerCase().includes(q) || (l.excerpt && l.excerpt.toLowerCase().includes(q)));
+        }
+
+        grid.innerHTML = '';
+        if (combined.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state-card" style="grid-column: 1 / -1; text-align:center; padding:3.5rem 1.5rem; background:var(--bg-secondary); border-radius:16px; border:2px dashed var(--border-color);">
+                    <div style="font-size:3.5rem; margin-bottom:1rem;">📖</div>
+                    <h3 style="font-size:1.3rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">Hozircha ma'ruzalar kiritilmagan</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; max-width:480px; margin:0 auto 1.5rem;">
+                        ${AdminAuth.isAdmin() ? "Fayllar markazi orqali o'zingiz istalgan mavzuni yozib, Google Disk taqdimotini yoki matnli faylni yuklashingiz mumkin." : "Ushbu bo'limga tez orada o'qituvchi tomonidan ma'ruzalar yuklanadi."}
+                    </p>
+                    ${AdminAuth.isAdmin() ? `
+                        <button class="btn btn-primary" onclick="openUploadForCategory('lecture')">
+                            <span>➕ Yangi ma'ruza mavzusi va faylini yuklash</span>
+                        </button>
+                    ` : ''}
                 </div>
             `;
+            return;
+        }
+
+        combined.forEach((lec, idx) => {
+            const card = document.createElement('div');
+            card.className = `lecture-card card-${lec.color || 'blue'}`;
+
+            if (lec.isUploaded && lec.file) {
+                const f = lec.file;
+                const ext = (f.type || fileManager.getTypeFromExt(f.name) || 'pptx').toLowerCase();
+                card.innerHTML = `
+                    <div class="card-top">
+                        <span class="card-number">№ ${idx + 1}</span>
+                        <span class="card-tag">${ext.toUpperCase()}</span>
+                    </div>
+                    <h3 class="card-title">${lec.title}</h3>
+                    <p class="card-excerpt">${lec.excerpt}</p>
+                    <div class="card-footer">
+                        <span class="card-file-badge attached" title="${f.name}">📎 ${f.name}</span>
+                        <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${f.id}')">Ochish &rarr;</button>
+                    </div>
+                `;
+            } else {
+                const attachedFile = fileManager.getFileForSlot('lecture', lec.id);
+                const fileBadgeHtml = attachedFile 
+                    ? `<span class="card-file-badge attached" title="${attachedFile.name}">📎 Fayl yuklangan</span>`
+                    : (AdminAuth.isAdmin() 
+                        ? `<span class="card-file-badge empty" onclick="openUploadForCategory('lecture', '${lec.title}')">+ Fayl biriktirish</span>` 
+                        : `<span class="card-file-badge" style="opacity:0.65;">📖 Matnli ma'ruza</span>`);
+
+                card.innerHTML = `
+                    <div class="card-top">
+                        <span class="card-number">№ ${idx + 1}</span>
+                        <span class="card-tag">${lec.tag || "Ma'ruza"}</span>
+                    </div>
+                    <h3 class="card-title">${lec.title}</h3>
+                    <p class="card-excerpt">${lec.excerpt || ''}</p>
+                    <div class="card-footer">
+                        ${fileBadgeHtml}
+                        <button class="btn btn-outline btn-sm" onclick="openLectureModal(${lec.id})">O'qish &rarr;</button>
+                    </div>
+                `;
+            }
             grid.appendChild(card);
         });
-    }
+    };
 
-    if (typeof lecturesData !== 'undefined') {
-        renderLectures(lecturesData);
-    }
+    window.renderLecturesList();
 
     if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase();
-            const filtered = (typeof lecturesData !== 'undefined' ? lecturesData : []).filter(l => 
-                l.title.toLowerCase().includes(q) || l.excerpt.toLowerCase().includes(q)
-            );
-            renderLectures(filtered);
+        searchInput.addEventListener('input', () => {
+            window.renderLecturesList();
         });
     }
 
     window.updateCardFileBadges = () => {
-        if (typeof lecturesData !== 'undefined') {
-            const q = searchInput ? searchInput.value.toLowerCase() : '';
-            const filtered = lecturesData.filter(l => l.title.toLowerCase().includes(q) || l.excerpt.toLowerCase().includes(q));
-            renderLectures(filtered);
-        }
-        if (typeof practicalsData !== 'undefined' && window.renderPracticalsList) {
-            window.renderPracticalsList();
-        }
-        if (typeof testsData !== 'undefined' && window.renderTestsList) {
-            window.renderTestsList();
-        }
+        if (window.renderLecturesList) window.renderLecturesList();
+        if (window.renderPracticalsList) window.renderPracticalsList();
+        if (window.renderTestsList) window.renderTestsList();
     };
 }
 
@@ -871,7 +935,7 @@ window.deleteAndRefreshLecture = async function(lectureId, fileId) {
 };
 
 // =============================================================================
-// 5. AMALIY TOPSHIRIQLAR MODULI (15 TA TOPSHIRIQ)
+// 5. AMALIY TOPSHIRIQLAR MODULI
 // =============================================================================
 function initPracticals() {
     const grid = document.getElementById('practicals-grid');
@@ -879,34 +943,82 @@ function initPracticals() {
     if (!grid) return;
 
     window.renderPracticalsList = function() {
-        const q = searchInput ? searchInput.value.toLowerCase() : '';
-        const list = (typeof practicalsData !== 'undefined' ? practicalsData : []).filter(p => 
-            p.title.toLowerCase().includes(q) || p.excerpt.toLowerCase().includes(q)
-        );
-        grid.innerHTML = '';
-        list.forEach(p => {
-            const card = document.createElement('div');
-            card.className = `practical-card card-${p.color || 'purple'}`;
-            
-            const attachedFile = fileManager.getFileForSlot('practical', p.id);
-            const fileBadgeHtml = attachedFile 
-                ? `<span class="card-file-badge attached" title="${attachedFile.name}">📎 Fayl yuklangan</span>`
-                : (AdminAuth.isAdmin() 
-                    ? `<span class="card-file-badge empty">+ Topshiriq fayli</span>` 
-                    : `<span class="card-file-badge" style="opacity:0.65;">✍️ Amaliy ish</span>`);
+        const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const staticList = typeof practicalsData !== 'undefined' ? practicalsData : [];
+        const uploadedList = (fileManager ? fileManager.memoryFiles.filter(f => f.category === 'practical') : []).map((f, idx) => ({
+            id: f.id,
+            title: f.topic || f.name,
+            excerpt: f.desc || `${f.name} — Amaliy topshiriq va amaliyot ko'rsatmasi.`,
+            tag: (f.type || 'docx').toUpperCase(),
+            color: "purple",
+            isUploaded: true,
+            file: f
+        }));
 
-            card.innerHTML = `
-                <div class="card-top">
-                    <span class="card-number">№ ${p.id}</span>
-                    <span class="card-tag">${p.tag || "Amaliy ish"}</span>
-                </div>
-                <h3 class="card-title">${p.title}</h3>
-                <p class="card-excerpt">${p.excerpt}</p>
-                <div class="card-footer">
-                    ${fileBadgeHtml}
-                    <button class="btn btn-outline btn-sm" onclick="openPracticalModal(${p.id})">Ko'rish & Fayl &rarr;</button>
+        let combined = [...staticList, ...uploadedList];
+        if (q) {
+            combined = combined.filter(p => p.title.toLowerCase().includes(q) || (p.excerpt && p.excerpt.toLowerCase().includes(q)));
+        }
+
+        grid.innerHTML = '';
+        if (combined.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state-card" style="grid-column: 1 / -1; text-align:center; padding:3.5rem 1.5rem; background:var(--bg-secondary); border-radius:16px; border:2px dashed var(--border-color);">
+                    <div style="font-size:3.5rem; margin-bottom:1rem;">✍️</div>
+                    <h3 style="font-size:1.3rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">Hozircha amaliy topshiriqlar kiritilmagan</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; max-width:480px; margin:0 auto 1.5rem;">
+                        ${AdminAuth.isAdmin() ? "Fayllar markazi orqali o'zingiz istalgan mavzudagi amaliy topshiriqlar faylini yuklashingiz mumkin." : "Ushbu bo'limga tez orada o'qituvchi tomonidan amaliy ishlar yuklanadi."}
+                    </p>
+                    ${AdminAuth.isAdmin() ? `
+                        <button class="btn btn-primary" onclick="openUploadForCategory('practical')">
+                            <span>➕ Yangi amaliy ish mavzusi va faylini yuklash</span>
+                        </button>
+                    ` : ''}
                 </div>
             `;
+            return;
+        }
+
+        combined.forEach((p, idx) => {
+            const card = document.createElement('div');
+            card.className = `practical-card card-${p.color || 'purple'}`;
+
+            if (p.isUploaded && p.file) {
+                const f = p.file;
+                const ext = (f.type || fileManager.getTypeFromExt(f.name) || 'docx').toLowerCase();
+                card.innerHTML = `
+                    <div class="card-top">
+                        <span class="card-number">№ ${idx + 1}</span>
+                        <span class="card-tag">${ext.toUpperCase()}</span>
+                    </div>
+                    <h3 class="card-title">${p.title}</h3>
+                    <p class="card-excerpt">${p.excerpt}</p>
+                    <div class="card-footer">
+                        <span class="card-file-badge attached" title="${f.name}">📎 ${f.name}</span>
+                        <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${f.id}')">Topshiriqni ochish &rarr;</button>
+                    </div>
+                `;
+            } else {
+                const attachedFile = fileManager.getFileForSlot('practical', p.id);
+                const fileBadgeHtml = attachedFile 
+                    ? `<span class="card-file-badge attached" title="${attachedFile.name}">📎 Fayl yuklangan</span>`
+                    : (AdminAuth.isAdmin() 
+                        ? `<span class="card-file-badge empty" onclick="openUploadForCategory('practical', '${p.title}')">+ Topshiriq fayli</span>` 
+                        : `<span class="card-file-badge" style="opacity:0.65;">✍️ Amaliy ish</span>`);
+
+                card.innerHTML = `
+                    <div class="card-top">
+                        <span class="card-number">№ ${idx + 1}</span>
+                        <span class="card-tag">${p.tag || "Amaliy ish"}</span>
+                    </div>
+                    <h3 class="card-title">${p.title}</h3>
+                    <p class="card-excerpt">${p.excerpt || ''}</p>
+                    <div class="card-footer">
+                        ${fileBadgeHtml}
+                        <button class="btn btn-outline btn-sm" onclick="openPracticalModal(${p.id})">Ko'rish &rarr;</button>
+                    </div>
+                `;
+            }
             grid.appendChild(card);
         });
     };
@@ -1026,38 +1138,83 @@ window.deleteAndRefreshPractical = async function(practicalId, fileId) {
 };
 
 // =============================================================================
-// 6. TESTLAR MODULI (15 MAVZU BO'YICHA INTERAKTIV TEST VA FAYLLAR)
+// 6. TESTLAR MODULI
 // =============================================================================
 function initTests() {
     const grid = document.getElementById('tests-grid');
     if (!grid) return;
 
     window.renderTestsList = function() {
-        if (typeof testsData === 'undefined') return;
-        grid.innerHTML = '';
-        testsData.forEach(t => {
-            const card = document.createElement('div');
-            card.className = 'test-card glass-card';
-            
-            const attachedFile = fileManager.getFileForSlot('test', t.id);
-            const fileBadge = attachedFile 
-                ? `<span class="card-file-badge attached">📎 Savollar fayli bor</span>`
-                : (AdminAuth.isAdmin() 
-                    ? `<span class="card-file-badge empty">+ Test fayli</span>` 
-                    : `<span class="card-file-badge" style="opacity:0.65;">📝 Interaktiv test</span>`);
+        const staticList = typeof testsData !== 'undefined' ? testsData : [];
+        const uploadedList = (fileManager ? fileManager.memoryFiles.filter(f => f.category === 'test') : []).map((f, idx) => ({
+            id: f.id,
+            title: f.topic || f.name,
+            desc: f.desc || `${f.name} — Test savollari va baholash materiallari.`,
+            tag: (f.type || 'docx').toUpperCase(),
+            isUploaded: true,
+            file: f
+        }));
 
-            card.innerHTML = `
-                <div class="test-card-header">
-                    <span class="card-number">№ ${t.id} - Mavzu</span>
-                    <span class="test-badge">${(t.questions || []).length} ta savol</span>
-                </div>
-                <h3 class="test-title">${t.title}</h3>
-                <p class="test-desc">Ushbu mavzu bo'yicha bilimlaringizni interaktiv tarzda sinab ko'ring yoki faylini yuklang.</p>
-                <div class="card-footer" style="margin-top:1rem; display:flex; justify-content:space-between; align-items:center;">
-                    ${fileBadge}
-                    <button class="btn btn-primary btn-sm" onclick="openTestModal(${t.id})">Testni boshlash &rarr;</button>
+        const combined = [...staticList, ...uploadedList];
+        grid.innerHTML = '';
+        if (combined.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state-card" style="grid-column: 1 / -1; text-align:center; padding:3.5rem 1.5rem; background:var(--bg-secondary); border-radius:16px; border:2px dashed var(--border-color);">
+                    <div style="font-size:3.5rem; margin-bottom:1rem;">📝</div>
+                    <h3 style="font-size:1.3rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">Hozircha testlar kiritilmagan</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; max-width:480px; margin:0 auto 1.5rem;">
+                        ${AdminAuth.isAdmin() ? "Fayllar markazi orqali o'zingiz istalgan mavzudagi test savollari yoki variantlari faylini yuklashingiz mumkin." : "Ushbu bo'limga tez orada o'qituvchi tomonidan test savollari yuklanadi."}
+                    </p>
+                    ${AdminAuth.isAdmin() ? `
+                        <button class="btn btn-primary" onclick="openUploadForCategory('test')">
+                            <span>➕ Yangi test mavzusi va faylini yuklash</span>
+                        </button>
+                    ` : ''}
                 </div>
             `;
+            return;
+        }
+
+        combined.forEach((t, idx) => {
+            const card = document.createElement('div');
+            card.className = 'test-card glass-card';
+
+            if (t.isUploaded && t.file) {
+                const f = t.file;
+                const ext = (f.type || fileManager.getTypeFromExt(f.name) || 'docx').toLowerCase();
+                card.innerHTML = `
+                    <div class="test-card-header">
+                        <span class="card-number">№ ${idx + 1} - Mavzu</span>
+                        <span class="test-badge">${ext.toUpperCase()}</span>
+                    </div>
+                    <h3 class="test-title">${t.title}</h3>
+                    <p class="test-desc">${t.desc}</p>
+                    <div class="card-footer" style="margin-top:1rem; display:flex; justify-content:space-between; align-items:center;">
+                        <span class="card-file-badge attached" title="${f.name}">📎 ${f.name}</span>
+                        <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('${f.id}')">Savollarni ochish &rarr;</button>
+                    </div>
+                `;
+            } else {
+                const attachedFile = fileManager.getFileForSlot('test', t.id);
+                const fileBadge = attachedFile 
+                    ? `<span class="card-file-badge attached">📎 Savollar fayli bor</span>`
+                    : (AdminAuth.isAdmin() 
+                        ? `<span class="card-file-badge empty" onclick="openUploadForCategory('test', '${t.title}')">+ Test fayli</span>` 
+                        : `<span class="card-file-badge" style="opacity:0.65;">📝 Interaktiv test</span>`);
+
+                card.innerHTML = `
+                    <div class="test-card-header">
+                        <span class="card-number">№ ${idx + 1} - Mavzu</span>
+                        <span class="test-badge">${(t.questions || []).length} ta savol</span>
+                    </div>
+                    <h3 class="test-title">${t.title}</h3>
+                    <p class="test-desc">Ushbu mavzu bo'yicha bilimlaringizni sinab ko'ring.</p>
+                    <div class="card-footer" style="margin-top:1rem; display:flex; justify-content:space-between; align-items:center;">
+                        ${fileBadge}
+                        <button class="btn btn-primary btn-sm" onclick="openTestModal(${t.id})">Testni boshlash &rarr;</button>
+                    </div>
+                `;
+            }
             grid.appendChild(card);
         });
     };
@@ -2542,63 +2699,15 @@ window.cancelSlotEditing = function() {
     if (urlInput) urlInput.value = '';
     const nameInput = document.getElementById('gdrive-file-name');
     if (nameInput) nameInput.value = '';
+    const topicInput = document.getElementById('upload-target-topic');
+    if (topicInput) topicInput.value = '';
     const previewBox = document.getElementById('gdrive-live-preview-box');
     if (previewBox) previewBox.classList.add('hidden');
 };
 
 function initFileHub() {
-    // 1. Populate category slot dropdown
     const catSelect = document.getElementById('upload-target-category');
-    const slotSelect = document.getElementById('upload-target-slot');
-    const slotGroup = document.getElementById('slot-select-group');
-
-    function updateSlotOptions() {
-        if (!catSelect || !slotSelect) return;
-        const cat = catSelect.value;
-        slotSelect.innerHTML = '';
-
-        if (cat === 'resource') {
-            slotGroup.style.display = 'none';
-            const opt = document.createElement('option');
-            opt.value = 0;
-            opt.textContent = "Umumiy adabiyot / material";
-            slotSelect.appendChild(opt);
-            return;
-        }
-
-        slotGroup.style.display = 'flex';
-        const count = 15;
-        let prefix = "Ma'ruza";
-        let sourceList = typeof lecturesData !== 'undefined' ? lecturesData : [];
-        if (cat === 'practical') {
-            prefix = "Amaliy ish";
-            sourceList = typeof practicalsData !== 'undefined' ? practicalsData : [];
-        } else if (cat === 'test') {
-            prefix = "Mavzu testi";
-            sourceList = typeof testsData !== 'undefined' ? testsData : [];
-        }
-
-        for (let i = 1; i <= count; i++) {
-            const item = sourceList.find(x => x.id === i);
-            const title = item ? item.title : `${prefix} ${i}`;
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = `${i}-mavzu: ${title}`;
-            slotSelect.appendChild(opt);
-        }
-    }
-
-    if (catSelect) {
-        catSelect.addEventListener('change', () => {
-            updateSlotOptions();
-            updateLivePreviewFromInputs();
-        });
-        updateSlotOptions();
-    }
-
-    if (slotSelect) {
-        slotSelect.addEventListener('change', updateLivePreviewFromInputs);
-    }
+    const topicInput = document.getElementById('upload-target-topic');
 
     // 2. Google Drive Link input & Live Preview
     const gdriveUrlInput = document.getElementById('gdrive-url-input');
@@ -2620,41 +2729,30 @@ function initFileHub() {
         const parsed = parseGoogleDriveUrl(url);
 
         const cat = catSelect ? catSelect.value : 'lecture';
-        const slotId = slotSelect ? parseInt(slotSelect.value) || 1 : 1;
+        const topic = topicInput ? topicInput.value.trim() : '';
         const ext = fileTypeSelect ? fileTypeSelect.value : 'pptx';
-
-        let sourceList = typeof lecturesData !== 'undefined' ? lecturesData : [];
-        let prefix = "Ma'ruza";
-        if (cat === 'practical') {
-            sourceList = typeof practicalsData !== 'undefined' ? practicalsData : [];
-            prefix = "Amaliy ish";
-        } else if (cat === 'test') {
-            sourceList = typeof testsData !== 'undefined' ? testsData : [];
-            prefix = "Test";
-        }
-
-        const foundItem = sourceList.find(x => x.id === slotId);
-        const autoTitle = foundItem ? foundItem.title : `${slotId}-Mavzu materiallari`;
+        const autoTitle = topic || (fileNameInput && fileNameInput.value.trim()) || "O'quv materiali";
 
         if (parsed) {
             if (livePreviewBox) livePreviewBox.classList.remove('hidden');
             if (previewImg) {
-                previewImg.onerror = () => handlePreviewImgError(previewImg, ext, autoTitle, slotId);
+                previewImg.onerror = () => handlePreviewImgError(previewImg, ext, autoTitle, 1);
                 previewImg.src = parsed.thumbnailUrl;
             }
-            if (previewTitle) previewTitle.textContent = fileNameInput && fileNameInput.value.trim() ? fileNameInput.value.trim() : `${slotId}-Mavzu: ${autoTitle}`;
-            if (previewTag) previewTag.textContent = `${slotId}-${ext === 'pptx' ? 'Taqdimot' : ext.toUpperCase()}`;
+            if (previewTitle) previewTitle.textContent = autoTitle;
+            const catBadge = cat === 'lecture' ? "Ma'ruza" : cat === 'practical' ? "Amaliy ish" : cat === 'test' ? "Test" : "Adabiyot";
+            if (previewTag) previewTag.textContent = `${catBadge} • ${ext.toUpperCase()}`;
             if (previewSub) previewSub.textContent = `Fan: Raqamli emotsional intelekt`;
             if (previewCount) {
                 const cnt = document.getElementById('gdrive-downloads-count');
-                previewCount.textContent = `Yuklab olindi: ${cnt ? cnt.value : 72} marta`;
+                previewCount.textContent = `Yuklab olindi: ${cnt ? cnt.value : 0} marta`;
             }
             if (gdriveStatus) {
                 gdriveStatus.innerHTML = `<span style="color:var(--success); font-weight:700;">✓ Google Disk ID aniqlandi (${parsed.fileId.substring(0, 8)}...). 1-bet prevyusi tayyor!</span>`;
             }
             // Auto fill file name if empty
             if (fileNameInput && !fileNameInput.value.trim()) {
-                fileNameInput.value = `${slotId}-Mavzu: ${autoTitle}.${ext}`;
+                fileNameInput.value = `${autoTitle}.${ext}`;
             }
         } else if (url.length > 5) {
             if (gdriveStatus) {
@@ -2671,6 +2769,12 @@ function initFileHub() {
     if (gdriveUrlInput) {
         gdriveUrlInput.addEventListener('input', updateLivePreviewFromInputs);
         gdriveUrlInput.addEventListener('change', updateLivePreviewFromInputs);
+    }
+    if (topicInput) {
+        topicInput.addEventListener('input', updateLivePreviewFromInputs);
+    }
+    if (catSelect) {
+        catSelect.addEventListener('change', updateLivePreviewFromInputs);
     }
     if (fileNameInput) {
         fileNameInput.addEventListener('input', updateLivePreviewFromInputs);
@@ -2721,13 +2825,13 @@ function initFileHub() {
             }
 
             const cat = catSelect ? catSelect.value : 'lecture';
-            const slotId = slotSelect ? parseInt(slotSelect.value) || 1 : 1;
+            const topic = topicInput ? topicInput.value.trim() : '';
             const ext = fileTypeSelect ? fileTypeSelect.value : 'pptx';
             const name = fileNameInput && fileNameInput.value.trim() 
                 ? fileNameInput.value.trim() 
-                : `${slotId}-Mavzu materiallari.${ext}`;
+                : (topic ? `${topic}.${ext}` : `Material.${ext}`);
             const subj = document.getElementById('gdrive-subject-name')?.value.trim() || "Fan: Raqamli emotsional intelekt";
-            const dCount = parseInt(document.getElementById('gdrive-downloads-count')?.value) || 72;
+            const dCount = parseInt(document.getElementById('gdrive-downloads-count')?.value) || 0;
             const desc = document.getElementById('gdrive-file-desc')?.value.trim() || '';
 
             saveGdriveBtn.disabled = true;
@@ -2735,7 +2839,8 @@ function initFileHub() {
 
             try {
                 const saved = await fileManager.saveGoogleDriveFile({
-                    slotId,
+                    id: currentEditingFileId || undefined,
+                    topic,
                     category: cat,
                     name,
                     driveUrl: url,
@@ -2750,6 +2855,7 @@ function initFileHub() {
                 // Reset form
                 if (gdriveUrlInput) gdriveUrlInput.value = '';
                 if (fileNameInput) fileNameInput.value = '';
+                if (topicInput) topicInput.value = '';
                 if (livePreviewBox) livePreviewBox.classList.add('hidden');
                 cancelSlotEditing();
 
@@ -2930,95 +3036,75 @@ function initFileHub() {
 }
 
 // Render the 15 slots for the currently selected category
+// Render materials for the currently selected category
 window.renderFileHubSlots = function() {
     const wrapper = document.getElementById('file-slots-wrapper');
     if (!wrapper) return;
 
     const isAdmin = AdminAuth.isAdmin();
-
-    if (currentFileHubCategory === 'resource') {
-        const resources = fileManager.getAllFilesForCategory('resource');
-        wrapper.innerHTML = `
-            <div style="background:var(--bg-card); padding:1.5rem; border-radius:12px; border:1px solid var(--border-color); margin-bottom:2rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
-                    <h4>📚 Qo'shimcha adabiyotlar va materiallar ombori</h4>
-                    ${isAdmin ? `
-                        <button class="btn btn-primary btn-sm" onclick="openFastUploadForSlot('resource', 0)">➕ Yangi material ulash</button>
-                    ` : `
-                        <span style="font-size:0.8rem; color:var(--text-muted);">Mavjud qo'shimcha materiallarni yuklab oling</span>
-                    `}
-                </div>
-                ${resources.length === 0 ? `
-                    <p style="color:var(--text-muted); font-size:0.9rem;">Hozircha qo'shimcha adabiyotlar yuklanmagan.</p>
-                ` : `
-                    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
-                        ${resources.map(r => `
-                            <div style="background:var(--bg-secondary); padding:1rem; border-radius:12px; border:1px solid var(--border-color); display:flex; flex-direction:column; justify-content:space-between;">
-                                <div style="display:flex; align-items:flex-start; gap:0.75rem;">
-                                    <span style="font-size:2rem;">${fileManager.getFileIcon(r.name)}</span>
-                                    <div style="overflow:hidden;">
-                                        <div style="font-weight:700; font-size:0.95rem; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${r.name}">${r.name}</div>
-                                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">${fileManager.formatFileSize(r.size)} • ${r.uploadedAt}</div>
-                                        ${r.desc ? `<div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.35rem;">${r.desc}</div>` : ''}
-                                    </div>
-                                </div>
-                                <div style="display:flex; gap:0.5rem; margin-top:1rem;">
-                                    <button class="btn btn-primary btn-sm" style="flex:1;" onclick="fileManager.downloadFile('${r.id}')">⬇️ Ochish / Yuklab olish</button>
-                                    <button class="btn btn-outline-sm" onclick="openFilePreview('${r.id}')">👁️</button>
-                                    ${isAdmin ? `<button class="btn btn-danger-sm" onclick="deleteFileFromHub('${r.id}')" title="O'chirish">🗑️</button>` : ''}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                `}
-            </div>
-        `;
-        return;
+    const targetCat = currentFileHubCategory;
+    let list = fileManager.memoryFiles;
+    if (targetCat !== 'all') {
+        list = list.filter(f => f.category === targetCat);
     }
 
-    // Determine category to show in 15 slots
-    const targetCat = currentFileHubCategory === 'all' ? 'lecture' : currentFileHubCategory;
-    let sourceList = typeof lecturesData !== 'undefined' ? lecturesData : [];
-    let catTitle = "15 ta ma'ruza taqdimotlari va matnlari (1-beti bilan)";
-    let badgeTypeLabel = "Taqdimot";
-    if (targetCat === 'practical') {
-        sourceList = typeof practicalsData !== 'undefined' ? practicalsData : [];
-        catTitle = "15 ta amaliy topshiriqlar fayllari (1-beti bilan)";
-        badgeTypeLabel = "Amaliy ish";
-    } else if (targetCat === 'test') {
-        sourceList = typeof testsData !== 'undefined' ? testsData : [];
-        catTitle = "15 ta test materiallari fayllari (1-beti bilan)";
-        badgeTypeLabel = "Test";
-    }
+    const catLabels = {
+        'all': "Barcha o'quv materiallari",
+        'lecture': "Ma'ruzalar materiallari va taqdimotlari",
+        'practical': "Amaliy topshiriqlar va ko'rsatmalar",
+        'test': "Test materiallari va savollar to'plamlari",
+        'resource': "Qo'shimcha adabiyotlar va qo'llanmalar"
+    };
+    const catTitle = catLabels[targetCat] || "O'quv materiallari";
 
     let cardsHtml = '';
-    for (let i = 1; i <= 15; i++) {
-        const item = sourceList.find(x => x.id === i);
-        const title = item ? item.title : `Mavzu ${i}`;
-        const attached = fileManager.getFileForSlot(targetCat, i);
-
-        if (attached) {
+    if (list.length === 0) {
+        cardsHtml = `
+            <div class="empty-file-slot-card" style="grid-column: 1 / -1; text-align:center; padding:3.5rem 1.5rem; background:var(--bg-secondary); border-radius:16px; border:2px dashed var(--border-color); margin-bottom:1.5rem;">
+                <div style="font-size:3.5rem; margin-bottom:1rem;">📂</div>
+                <h4 style="font-size:1.25rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">Ushbu bo'limda hozircha materiallar yo'q</h4>
+                <p style="color:var(--text-muted); font-size:0.9rem; max-width:480px; margin:0 auto 1.5rem;">
+                    ${isAdmin ? "Yuqoridagi formadan foydalanib, xohlagan mavzuingiz nomini yozing va unga tegishli Google Disk havolasini yoki faylni biriktiring." : "Ushbu bo'limga tez orada o'qituvchi tomonidan yangi mavzular va o'quv materiallari yuklanadi."}
+                </p>
+                ${isAdmin ? `
+                    <button class="btn btn-primary" onclick="scrollToUploader('${targetCat}')">
+                        <span>➕ Yangi mavzu va fayl yuklash</span>
+                    </button>
+                ` : ''}
+            </div>
+        `;
+    } else {
+        list.forEach((attached, idx) => {
             const ext = (attached.type || fileManager.getTypeFromExt(attached.name) || 'pptx').toLowerCase();
-            const safeTitleEscaped = title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const topicTitle = attached.topic || attached.name || `Material ${idx + 1}`;
+            const safeTitleEscaped = topicTitle.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const safeNameEscaped = attached.name.replace(/"/g, '&quot;');
             const subj = attached.subject || "Fan: Raqamli emotsional intelekt";
-            const dCount = attached.downloadsCount || 72;
-            const thumbnailUrl = attached.thumbnailUrl || (attached.driveId ? `https://drive.google.com/thumbnail?id=${attached.driveId}&sz=w800` : generateDocumentCoverSvg(title, ext, i));
+            const dCount = attached.downloadsCount || 0;
+            const thumbnailUrl = attached.thumbnailUrl || (attached.driveId ? `https://drive.google.com/thumbnail?id=${attached.driveId}&sz=w800` : generateDocumentCoverSvg(topicTitle, ext, idx + 1));
+            
+            const catBadgeNames = {
+                'lecture': "Ma'ruza",
+                'practical': "Amaliy ish",
+                'test': "Test",
+                'resource': "Adabiyot"
+            };
+            const badgeTypeLabel = catBadgeNames[attached.category] || "Material";
 
             cardsHtml += `
                 <div class="file-slot-card gdrive-slot-card has-file">
                     <div class="slot-preview-wrapper" onclick="fileManager.downloadFile('${attached.id}')" title="Google Diskdan ochish (1-sahifa)">
-                        <img class="slot-preview-img" src="${thumbnailUrl}" alt="${safeTitleEscaped}" loading="lazy" onerror="handlePreviewImgError(this, '${ext}', '${safeTitleEscaped}', ${i})">
+                        <img class="slot-preview-img" src="${thumbnailUrl}" alt="${safeTitleEscaped}" loading="lazy" onerror="handlePreviewImgError(this, '${ext}', '${safeTitleEscaped}', ${idx + 1})">
                         <div class="slot-preview-overlay">
                             <span class="preview-zoom-btn">↗ Google Diskda ochish</span>
                         </div>
-                        <span class="slot-badge-top-left">№ ${i} - ${badgeTypeLabel}</span>
+                        <span class="slot-badge-top-left">${badgeTypeLabel}</span>
                         <span class="slot-badge-top-right file-ext-${ext}">${ext.toUpperCase()}</span>
                     </div>
 
                     <div class="slot-content-body">
                         <div class="slot-subject-label">${subj}</div>
-                        <h4 class="slot-title" title="${safeTitleEscaped}">${title}</h4>
+                        <h4 class="slot-title" title="${safeTitleEscaped}">${topicTitle}</h4>
                         <div class="slot-file-meta-row">
                             <span class="meta-file-name" title="${safeNameEscaped}">📄 ${attached.name}</span>
                             <span class="meta-file-size">${fileManager.formatFileSize(attached.size)}</span>
@@ -3037,7 +3123,7 @@ window.renderFileHubSlots = function() {
                             <span>👁️</span>
                         </button>
                         ${isAdmin ? `
-                            <button class="btn btn-edit-slot-tiny" onclick="openFastUploadForSlot('${targetCat}', ${i}, '${attached.id}')" title="Havolani o'zgartirish">
+                            <button class="btn btn-edit-slot-tiny" onclick="editUploadedFile('${attached.id}')" title="Tahrirlash">
                                 ✏️
                             </button>
                             <button class="btn btn-slot-delete" onclick="deleteFileFromHub('${attached.id}')" title="O'chirish">
@@ -3047,37 +3133,7 @@ window.renderFileHubSlots = function() {
                     </div>
                 </div>
             `;
-        } else {
-            cardsHtml += `
-                <div class="file-slot-card empty-file">
-                    <div class="slot-empty-preview" onclick="${isAdmin ? `openFastUploadForSlot('${targetCat}', ${i})` : ''}" title="${isAdmin ? 'Google Disk havolasini ulash' : ''}">
-                        <div class="empty-preview-icon">☁️</div>
-                        <div class="empty-preview-text">Google Disk havolasi ulanmagan</div>
-                        <span class="slot-badge-top-left">№ ${i} - ${badgeTypeLabel}</span>
-                    </div>
-
-                    <div class="slot-content-body">
-                        <div class="slot-subject-label">Fan: Raqamli emotsional intelekt</div>
-                        <h4 class="slot-title">${title}</h4>
-                        <p class="slot-empty-desc">
-                            ${isAdmin ? "Ushbu mavzu uchun Google Diskingizdagi taqdimot, PDF yoki Word fayl havolasini biriktiring." : "Ushbu mavzu bo'yicha material tez kunda yuklanadi."}
-                        </p>
-                    </div>
-
-                    <div class="slot-card-actions">
-                        ${isAdmin ? `
-                            <button class="btn btn-primary btn-sm btn-block" onclick="openFastUploadForSlot('${targetCat}', ${i})">
-                                🔗 Google Disk linkini ulash
-                            </button>
-                        ` : `
-                            <button class="btn btn-disabled btn-sm btn-block" disabled>
-                                ⏳ Tez kunda
-                            </button>
-                        `}
-                    </div>
-                </div>
-            `;
-        }
+        });
     }
 
     wrapper.innerHTML = `
@@ -3085,13 +3141,18 @@ window.renderFileHubSlots = function() {
             <div>
                 <h3 style="font-size:1.25rem; font-weight:800;">${catTitle}</h3>
                 <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">
-                    Barcha fayllar serverda 0 MB joy egallaydi. 1-beti avtomatik ko'rinadi va ustiga bosganda Google Diskdan ochiladi.
+                    Barcha materiallar Google Disk orqali 0 MB joy egallaydi.
                 </p>
             </div>
             <div style="display:flex; align-items:center; gap:0.5rem;">
                 <span class="subhead-badge" style="background:rgba(14,165,233,0.1); color:#0284c7; font-weight:700;">
-                    ✓ Google Disk integratsiyasi faol
+                    ${list.length} ta material
                 </span>
+                ${isAdmin ? `
+                    <button class="btn btn-outline-sm" onclick="scrollToUploader('${targetCat}')" style="font-size:0.8rem;">
+                        ➕ Yangi qo'shish
+                    </button>
+                ` : ''}
             </div>
         </div>
         <div class="file-slots-grid">
@@ -3192,62 +3253,88 @@ window.renderFilesTable = function() {
     `;
 };
 
-// Fast upload / edit button for a specific slot
-window.openFastUploadForSlot = function(category, slotId, existingFileId = null) {
-    if (!AdminAuth.isAdmin()) {
-        showToast("Fayl ulash faqat sayt egasi (Admin) uchun ochiq!", "warning");
-        openAdminModal();
-        return;
+// Fast upload, edit and navigation helpers
+window.scrollToUploader = function(cat) {
+    if (window.switchPage) {
+        window.switchPage('file-hub');
     }
+    setTimeout(() => {
+        if (cat && cat !== 'all') {
+            const catSelect = document.getElementById('upload-target-category');
+            if (catSelect) {
+                catSelect.value = cat;
+                catSelect.dispatchEvent(new Event('change'));
+            }
+        }
+        const uploaderCard = document.getElementById('file-hub-upload-card');
+        if (uploaderCard) {
+            uploaderCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const topicInput = document.getElementById('upload-target-topic');
+        if (topicInput) topicInput.focus();
+    }, 120);
+};
+
+window.openUploadForCategory = function(cat, topicName = '') {
+    if (window.switchPage) {
+        window.switchPage('file-hub');
+    }
+    setTimeout(() => {
+        const catSelect = document.getElementById('upload-target-category');
+        if (catSelect && cat) {
+            catSelect.value = cat;
+            catSelect.dispatchEvent(new Event('change'));
+        }
+        const topicInput = document.getElementById('upload-target-topic');
+        if (topicInput && topicName) {
+            topicInput.value = topicName;
+        }
+        const uploaderCard = document.getElementById('file-hub-upload-card');
+        if (uploaderCard) {
+            uploaderCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        if (topicInput) topicInput.focus();
+    }, 150);
+};
+
+window.editUploadedFile = function(fileId) {
+    const file = fileManager.memoryFiles.find(f => f.id === fileId);
+    if (!file) return;
 
     if (window.switchPage) {
         window.switchPage('file-hub');
     }
 
-    // Switch to Google Drive panel by default
-    switchUploadMode('gdrive');
-
+    currentEditingFileId = fileId;
+    const heading = document.getElementById('uploader-heading-text');
+    const cancelBtn = document.getElementById('btn-cancel-edit-slot');
+    const urlInput = document.getElementById('gdrive-url-input');
+    const nameInput = document.getElementById('gdrive-file-name');
+    const topicInput = document.getElementById('upload-target-topic');
+    const typeSelect = document.getElementById('gdrive-file-type');
     const catSelect = document.getElementById('upload-target-category');
-    if (catSelect) {
-        catSelect.value = category;
-        catSelect.dispatchEvent(new Event('change'));
+
+    if (heading) heading.textContent = `"${file.topic || file.name}" materialini tahrirlash`;
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    if (urlInput) urlInput.value = file.driveUrl || '';
+    if (nameInput) nameInput.value = file.name || '';
+    if (topicInput) topicInput.value = file.topic || '';
+    if (typeSelect && file.type) typeSelect.value = file.type;
+    if (catSelect && file.category) catSelect.value = file.category;
+
+    const uploaderCard = document.getElementById('file-hub-upload-card');
+    if (uploaderCard) {
+        uploaderCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    if (urlInput) urlInput.dispatchEvent(new Event('input'));
+};
 
-    setTimeout(() => {
-        const slotSelect = document.getElementById('upload-target-slot');
-        if (slotSelect) slotSelect.value = slotId;
-
-        const heading = document.getElementById('uploader-heading-text');
-        const cancelBtn = document.getElementById('btn-cancel-edit-slot');
-        const urlInput = document.getElementById('gdrive-url-input');
-        const nameInput = document.getElementById('gdrive-file-name');
-        const typeSelect = document.getElementById('gdrive-file-type');
-
-        if (existingFileId) {
-            const existing = fileManager.memoryFiles.find(f => f.id === existingFileId);
-            if (existing) {
-                if (heading) heading.textContent = `№ ${slotId}-mavzu uchun Google Disk havolasini yangilash`;
-                if (urlInput) urlInput.value = existing.driveUrl || '';
-                if (nameInput) nameInput.value = existing.name || '';
-                if (typeSelect) typeSelect.value = existing.type || 'pptx';
-                if (cancelBtn) cancelBtn.style.display = 'inline-block';
-                if (urlInput) urlInput.dispatchEvent(new Event('input'));
-            }
-        } else {
-            if (heading) heading.textContent = `№ ${slotId}-mavzuga Google Disk havolasini ulash`;
-            if (cancelBtn) cancelBtn.style.display = 'inline-block';
-            if (urlInput) {
-                urlInput.value = '';
-                urlInput.focus();
-            }
-        }
-
-        // Scroll to uploader
-        const uploaderCard = document.getElementById('file-hub-upload-card');
-        if (uploaderCard) {
-            uploaderCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    }, 120);
+window.openFastUploadForSlot = function(category, slotId, existingFileId = null) {
+    if (existingFileId) {
+        window.editUploadedFile(existingFileId);
+    } else {
+        window.openUploadForCategory(category);
+    }
 };
 
 window.deleteFileFromHub = async function(fileId) {

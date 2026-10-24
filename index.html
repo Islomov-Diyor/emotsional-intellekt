@@ -43,17 +43,17 @@
             <li class="nav-item" data-page="lectures">
                 <span class="nav-icon">📖</span>
                 <span class="nav-text">Ma'ruzalar</span>
-                <span class="nav-badge">15</span>
+                <span class="nav-badge" id="nav-lectures-badge">0</span>
             </li>
             <li class="nav-item" data-page="practicals">
                 <span class="nav-icon">✍️</span>
                 <span class="nav-text">Amaliy topshiriqlar</span>
-                <span class="nav-badge">15</span>
+                <span class="nav-badge" id="nav-practicals-badge">0</span>
             </li>
             <li class="nav-item" data-page="tests">
                 <span class="nav-icon">📝</span>
                 <span class="nav-text">Testlar</span>
-                <span class="nav-badge">15</span>
+                <span class="nav-badge" id="nav-tests-badge">0</span>
             </li>
             <li class="nav-item" data-page="detection">
                 <span class="nav-icon">🔍</span>
@@ -123,27 +123,27 @@
             <div class="stats-grid">
                 <div class="stat-card" data-page-link="lectures">
                     <div class="stat-icon">📖</div>
-                    <div class="stat-number" data-count="15">0</div>
+                    <div class="stat-number" id="home-lectures-count" data-count="0">0</div>
                     <div class="stat-label">Ma'ruzalar</div>
-                    <div class="stat-bar"><div class="stat-bar-fill" style="width: 100%"></div></div>
+                    <div class="stat-bar"><div class="stat-bar-fill" id="home-lectures-bar" style="width: 0%"></div></div>
                 </div>
                 <div class="stat-card" data-page-link="practicals">
                     <div class="stat-icon">✍️</div>
-                    <div class="stat-number" data-count="15">0</div>
+                    <div class="stat-number" id="home-practicals-count" data-count="0">0</div>
                     <div class="stat-label">Amaliy topshiriqlar</div>
-                    <div class="stat-bar"><div class="stat-bar-fill" style="width: 100%"></div></div>
+                    <div class="stat-bar"><div class="stat-bar-fill" id="home-practicals-bar" style="width: 0%"></div></div>
                 </div>
                 <div class="stat-card" data-page-link="tests">
                     <div class="stat-icon">📝</div>
-                    <div class="stat-number" data-count="15">0</div>
+                    <div class="stat-number" id="home-tests-count" data-count="0">0</div>
                     <div class="stat-label">Testlar</div>
-                    <div class="stat-bar"><div class="stat-bar-fill" style="width: 100%"></div></div>
+                    <div class="stat-bar"><div class="stat-bar-fill" id="home-tests-bar" style="width: 0%"></div></div>
                 </div>
                 <div class="stat-card" data-page-link="simulations">
                     <div class="stat-icon">🎮</div>
-                    <div class="stat-number" data-count="8">0</div>
+                    <div class="stat-number" data-count="8">8</div>
                     <div class="stat-label">Simulyatsiyalar</div>
-                    <div class="stat-bar"><div class="stat-bar-fill" style="width: 53%"></div></div>
+                    <div class="stat-bar"><div class="stat-bar-fill" style="width: 100%"></div></div>
                 </div>
                 <div class="stat-card" data-page-link="file-hub">
                     <div class="stat-icon">📁</div>
@@ -159,7 +159,7 @@
                     <div class="feature-card glass-card" data-page-link="file-hub">
                         <div class="feature-icon-wrap"><span>📁</span></div>
                         <h3>O'quv fayllari markazi</h3>
-                        <p>15 ta ma'ruza, 15 ta amaliy topshiriq va test materiallarini yuklab olish va o'rganish</p>
+                        <p>Barcha ma'ruza, amaliy topshiriq va test materiallarini yuklab olish va o'rganish</p>
                     </div>
                     <div class="feature-card glass-card" data-page-link="detection">
                         <div class="feature-icon-wrap"><span>😊</span></div>
@@ -189,7 +189,7 @@
         <section id="page-lectures" class="page">
             <div class="page-header compact">
                 <h1 class="page-title">📖 Ma'ruzalar</h1>
-                <p class="page-description">Raqamli emotsional intelekt bo'yicha 15 ta ma'ruza matni</p>
+                <p class="page-description">Raqamli emotsional intellekt bo'yicha ma'ruza materiallari</p>
             </div>
             <div class="search-bar">
                 <input type="text" id="lecture-search" class="search-input" placeholder="Ma'ruza qidirish...">
@@ -215,7 +215,7 @@
         <section id="page-practicals" class="page">
             <div class="page-header compact">
                 <h1 class="page-title">✍️ Amaliy topshiriqlar</h1>
-                <p class="page-description">15 ta amaliy topshiriq orqali bilimingizni mustahkamlang</p>
+                <p class="page-description">Amaliy topshiriqlar va mashg'ulotlar to'plami</p>
             </div>
             <div class="search-bar">
                 <input type="text" id="practical-search" class="search-input" placeholder="Topshiriq qidirish...">
@@ -241,7 +241,7 @@
         <section id="page-tests" class="page">
             <div class="page-header compact">
                 <h1 class="page-title">📝 Testlar</h1>
-                <p class="page-description">15 mavzu bo'yicha test savollari</p>
+                <p class="page-description">Mavzular bo'yicha bilimni sinovchi test savollari</p>
             </div>
             <div class="cards-grid" id="tests-grid">
                 <!-- Populated by JS -->
@@ -683,23 +683,21 @@
                         <div class="control-group">
                             <label for="upload-target-category">📌 Qaysi bo'limga tegishli:</label>
                             <select id="upload-target-category" class="select-input">
-                                <option value="lecture">📖 Ma'ruzalar matnlari (1-15)</option>
-                                <option value="practical">✍️ Amaliy topshiriqlar (1-15)</option>
-                                <option value="test">📝 Test savollari (1-15)</option>
+                                <option value="lecture">📖 Ma'ruzalar matnlari</option>
+                                <option value="practical">✍️ Amaliy topshiriqlar</option>
+                                <option value="test">📝 Test savollari</option>
                                 <option value="resource">📚 Qo'shimcha adabiyot va materiallar</option>
                             </select>
                         </div>
 
                         <div class="control-group" id="slot-select-group">
-                            <label for="upload-target-slot">🎯 Mavzuni tanlang:</label>
-                            <select id="upload-target-slot" class="select-input">
-                                <!-- Populated dynamically with 15 options -->
-                            </select>
+                            <label for="upload-target-topic">🎯 Mavzu nomi (o'zingiz erkin kiriting):</label>
+                            <input type="text" id="upload-target-topic" class="text-input" placeholder="Masalan: 1-Mavzu: Raqamli emotsional intellektga kirish">
                         </div>
 
                         <div class="control-group">
-                            <label for="gdrive-file-name">📝 Fayl nomi / Mavzu sarlavhasi:</label>
-                            <input type="text" id="gdrive-file-name" class="text-input" placeholder="Masalan: 1-Mavzu: Emotsional intelekt tushunchasi va tarixi.pptx">
+                            <label for="gdrive-file-name">📝 Fayl nomi / Hujjat sarlavhasi:</label>
+                            <input type="text" id="gdrive-file-name" class="text-input" placeholder="Masalan: 1-Mavzu taqdimoti.pptx">
                         </div>
 
                         <div class="control-group">
@@ -793,10 +791,10 @@
 
             <!-- Categories Tabs -->
             <div class="file-hub-tabs">
-                <button class="file-tab active" data-file-cat="all">📂 Barcha fayllar (<span id="count-all-files">0</span>)</button>
-                <button class="file-tab" data-file-cat="lecture">📖 15 ta ma'ruza fayllari (<span id="count-lecture-files">0</span>/15)</button>
-                <button class="file-tab" data-file-cat="practical">✍️ 15 ta amaliy ish fayllari (<span id="count-practical-files">0</span>/15)</button>
-                <button class="file-tab" data-file-cat="test">📝 15 ta test fayllari (<span id="count-test-files">0</span>/15)</button>
+                <button class="file-tab active" data-file-cat="all">📂 Barcha materiallar (<span id="count-all-files">0</span>)</button>
+                <button class="file-tab" data-file-cat="lecture">📖 Ma'ruzalar (<span id="count-lecture-files">0</span>)</button>
+                <button class="file-tab" data-file-cat="practical">✍️ Amaliy topshiriqlar (<span id="count-practical-files">0</span>)</button>
+                <button class="file-tab" data-file-cat="test">📝 Test materiallari (<span id="count-test-files">0</span>)</button>
                 <button class="file-tab" data-file-cat="resource">📚 Qo'shimcha adabiyotlar (<span id="count-resource-files">0</span>)</button>
             </div>
 
