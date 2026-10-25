@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=3.2">
+    <link rel="stylesheet" href="styles.css?v=3.3">
     <style>
         /* Critical styles for REI launch banner & button to bypass browser cache */
         .rei-launch-banner {
@@ -721,8 +721,8 @@
             <div class="page-header compact">
                 <div class="page-header-flex">
                     <div>
-                        <h1 class="page-title">📁 Fayllarni yuklash va saqlash markazi</h1>
-                        <p class="page-description">15 ta ma'ruza matni, 15 ta amaliy topshiriq va 15 ta test materiallari fayllarini (Word .docx, PDF, PPTX taqdimot, Excel, ZIP) yuklang, saqlang va boshqaring.</p>
+                        <h1 class="page-title">📁 O'quv materiallari va fayllar markazi</h1>
+                        <p class="page-description">15 ta ma'ruza matni, 15 ta amaliy topshiriq va test materiallari fayllarini (Word .docx, PDF, PPTX taqdimot) erkin ko'ring, Google Diskda oching va yuklab oling.</p>
                     </div>
                     <div class="file-storage-group">
                         <button class="admin-role-pill" id="filehub-admin-status-pill" onclick="openAdminModal()" title="Admin rejimini boshqarish">
@@ -731,29 +731,23 @@
                         </button>
                         <div class="file-storage-pill">
                             <span class="storage-icon">💾</span>
-                            <span class="storage-text" id="storage-status-text">Yuklangan: 0 ta fayl</span>
+                            <span class="storage-text" id="storage-status-text">Yuklangan: 15 ta fayl</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Non-Admin Guest Banner (Visible to regular students) -->
-            <div class="admin-locked-card glass-card" id="file-hub-guest-banner">
-                <div class="locked-card-inner">
-                    <div class="locked-badge-wrap">
-                        <span class="locked-icon">🔒</span>
+            <!-- Non-Admin Guest Welcome Banner (Visible to students & visitors) -->
+            <div class="student-welcome-banner glass-card" id="file-hub-guest-banner" style="background: linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(14,165,233,0.08) 100%); border: 1.5px solid rgba(37,99,235,0.2); border-radius: 14px; margin-bottom: 1.5rem; overflow: hidden;">
+                <div class="locked-card-inner" style="display: flex; align-items: center; gap: 1.25rem; padding: 1.25rem 1.5rem;">
+                    <div class="locked-badge-wrap" style="width: 52px; height: 52px; border-radius: 12px; background: rgba(37,99,235,0.12); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0;">
+                        <span class="locked-icon">📚</span>
                     </div>
-                    <div class="locked-content">
-                        <h3>O'quv materiallari va fayllar markazi</h3>
-                        <p>
-                            Hurmatli talaba va foydalanuvchilar! Ushbu bo'limdagi barcha 15 ta ma'ruza matnlari, 15 ta amaliy topshiriqlar va test fayllarini quyidagi jadvaldan <b>erkin ko'rishingiz va kompyuteringizga yuklab olishingiz mumkin</b>. Yangi fayllarni yuklash, yangilash va o'chirish huquqi esa faqat <b>sayt egasi (Admin)</b> uchun himoyalangan.
+                    <div class="locked-content" style="flex: 1;">
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.3rem;">O'quv materiallari va taqdimotlar markazi</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                            Hurmatli talaba va foydalanuvchilar! Quyidagi kartochkalar orqali barcha 15 ta ma'ruza matnlari, amaliy topshiriqlar va test materiallarini <b>1-sahifasi bilan to'g'ridan-to'g'ri ko'rishingiz, Google Diskda ochishingiz va yuklab olishingiz mumkin</b>.
                         </p>
-                        <div class="locked-actions">
-                            <button class="btn btn-primary btn-sm" onclick="openAdminModal()">
-                                <span>🔐 Sayt egasi (Admin) sifatida kirish</span>
-                            </button>
-                            <span class="locked-hint">Agar siz sayt egasi bo'lsangiz, fayllarni yuklash uchun tizimga kiring</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1152,7 +1146,7 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="data.js?v=3.2"></script>
-    <script src="app.js?v=3.2"></script>
+    <script src="data.js?v=3.3"></script>
+    <script src="app.js?v=3.3"></script>
 </body>
 </html>
