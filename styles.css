@@ -4460,5 +4460,1146 @@ img {
     }
 }
 
+/* =============================================================================
+   REI (RAQAMLI EMOTIONAL INTELLEKT) SO'ROVNOMASI & NATIJALAR STILLARI
+   ============================================================================= */
 
+/* 1. Launch Banner (8 ta simulyatsiya tepasida ajralib turuvchi karta) */
+.rei-launch-banner {
+    position: relative;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.12) 100%);
+    border: 1.5px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--border-radius);
+    padding: 2rem 2.25rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    overflow: hidden;
+    box-shadow: 0 12px 36px rgba(59, 130, 246, 0.12);
+    transition: var(--transition-base);
+}
 
+[data-theme="dark"] .rei-launch-banner {
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.25) 0%, rgba(88, 28, 135, 0.3) 100%);
+    border-color: rgba(96, 165, 250, 0.35);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+}
+
+.rei-launch-banner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 42px rgba(59, 130, 246, 0.18);
+    border-color: rgba(59, 130, 246, 0.5);
+}
+
+.rei-launch-glow {
+    position: absolute;
+    top: -50%;
+    right: 15%;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+    border-radius: 50%;
+    filter: blur(40px);
+}
+
+.rei-launch-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+}
+
+.rei-launch-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.rei-launch-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: var(--primary-600);
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+[data-theme="dark"] .rei-launch-badge {
+    color: var(--primary-400);
+    background: rgba(59, 130, 246, 0.25);
+}
+
+.rei-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary-500);
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    animation: reiPulse 2s infinite;
+}
+
+@keyframes reiPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+.rei-launch-chip {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.rei-launch-title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.6rem;
+    line-height: 1.3;
+}
+
+.rei-launch-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 840px;
+    margin-bottom: 1.25rem;
+}
+
+.rei-launch-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.85rem;
+}
+
+.rei-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--border-radius-sm);
+}
+
+[data-theme="dark"] .rei-meta-item {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.rei-meta-icon {
+    font-size: 1.35rem;
+}
+
+.rei-meta-item b {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+}
+
+.rei-meta-item small {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.rei-launch-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.btn-rei-launch-hero {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    color: #ffffff;
+    font-size: 1.15rem;
+    font-weight: 800;
+    font-family: var(--font-display);
+    padding: 1.1rem 2rem;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.35);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.btn-rei-launch-hero:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(79, 70, 229, 0.45);
+    background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+}
+
+.btn-rei-launch-hero:active {
+    transform: translateY(0);
+}
+
+.rei-btn-icon {
+    font-size: 1.4rem;
+}
+
+.rei-btn-arrow {
+    font-size: 1.3rem;
+    transition: transform 0.2s ease;
+}
+
+.btn-rei-launch-hero:hover .rei-btn-arrow {
+    transform: translateX(4px);
+}
+
+.rei-action-subtext {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.simulations-subheading {
+    margin-bottom: 1.25rem;
+}
+
+.simulations-subheading h3 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.simulations-subheading p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.tab-rei-direct {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15)) !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
+    font-weight: 700 !important;
+    color: var(--primary-600) !important;
+}
+
+[data-theme="dark"] .tab-rei-direct {
+    color: var(--primary-400) !important;
+}
+
+/* 2. REI Questionnaire Modal Container */
+.rei-modal .rei-modal-content {
+    max-width: 1040px;
+    width: 95%;
+    max-height: 92vh;
+    padding: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.rei-modal-body {
+    padding: 0;
+    overflow-y: auto;
+    max-height: 92vh;
+    scroll-behavior: smooth;
+}
+
+.rei-survey-wrapper,
+.rei-result-wrapper {
+    padding: 2rem 2.25rem;
+}
+
+/* 3. Survey Header */
+.rei-survey-header {
+    margin-bottom: 1.5rem;
+}
+
+.rei-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.85rem;
+    background: rgba(59, 130, 246, 0.12);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary-600);
+    margin-bottom: 0.75rem;
+}
+
+[data-theme="dark"] .rei-badge-pill {
+    color: var(--primary-400);
+}
+
+.rei-survey-main-title {
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    line-height: 1.3;
+}
+
+.rei-purpose-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 1rem 1.25rem;
+}
+
+.purpose-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--text-secondary);
+}
+
+.purpose-item .p-icon {
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* 4. Sticky Progress Tracker */
+.rei-sticky-tracker {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0 0.85rem 0;
+    margin: 0 -2.25rem 1.5rem -2.25rem;
+    padding-left: 2.25rem;
+    padding-right: 2.25rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] .rei-sticky-tracker {
+    background: rgba(26, 34, 54, 0.92);
+}
+
+.tracker-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.tracker-info {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+.tracker-count b {
+    color: var(--primary-600);
+    font-size: 1.05rem;
+}
+
+[data-theme="dark"] .tracker-count b {
+    color: var(--primary-400);
+}
+
+.tracker-pct-badge {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--primary-600);
+    background: rgba(59, 130, 246, 0.12);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+}
+
+.tracker-bar-track {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.85rem;
+}
+
+[data-theme="dark"] .tracker-bar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.tracker-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 4px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rei-category-chips {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: thin;
+}
+
+.rei-cat-chip {
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rei-cat-chip:hover {
+    border-color: var(--primary-400);
+    color: var(--text-primary);
+}
+
+.rei-cat-chip.active {
+    background: var(--primary-600);
+    color: #ffffff;
+    border-color: var(--primary-600);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* 5. Questions and Categories */
+.rei-questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.rei-category-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+}
+
+.rei-category-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cat-heading-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.cat-icon-badge {
+    font-size: 1.5rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 12px;
+}
+
+.cat-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.cat-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.cat-progress-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    padding: 0.3rem 0.7rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.rei-category-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+}
+
+.rei-question-card {
+    background: var(--bg-secondary);
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 1.15rem 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.rei-question-card:hover {
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.rei-question-card.answered {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.02);
+}
+
+.rei-question-card.missing-warning {
+    border-color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.05) !important;
+    animation: gentleShake 0.4s ease;
+}
+
+@keyframes gentleShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.rei-q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.9rem;
+}
+
+.rei-q-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 800;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.rei-q-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin: 0;
+    padding-top: 4px;
+}
+
+/* 6. Rating Buttons Grid (5 ballik variantlar - Barchasi bir xil neytral ko'rinishda) */
+.rei-options-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.65rem;
+}
+
+.rei-opt-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    user-select: none;
+}
+
+.rei-opt-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-500);
+    background: var(--bg-secondary);
+}
+
+.rei-opt-score {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.rei-opt-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* Faqat foydalanuvchi o'zi tanlaganida faollashadi */
+.rei-opt-btn.selected {
+    background: #2563eb !important;
+    border-color: #1d4ed8 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    transform: scale(1.02);
+}
+
+.rei-opt-btn.selected .rei-opt-score,
+.rei-opt-btn.selected .rei-opt-label {
+    color: #ffffff !important;
+}
+
+/* 7. Survey Footer Toolbar */
+.rei-survey-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-modal);
+}
+
+.footer-left-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.footer-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.btn-calc-rei {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #ffffff;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+}
+
+.btn-calc-rei:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+}
+
+/* 8. RESULT VIEW (NATIJA SAHIFASI) */
+.rei-result-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.result-time-meta {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+/* Big Celebratory Hero Card */
+.rei-score-hero-card {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    padding: 2.25rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.12) 100%);
+    border: 1.5px solid rgba(59, 130, 246, 0.35);
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+}
+
+.score-hero-gauge-col {
+    flex-shrink: 0;
+}
+
+.rei-circular-meter {
+    position: relative;
+    width: 140px;
+    height: 140px;
+}
+
+.meter-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.meter-bg {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.08);
+    stroke-width: 10;
+}
+
+[data-theme="dark"] .meter-bg {
+    stroke: rgba(255, 255, 255, 0.1);
+}
+
+.meter-bar {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease-in-out;
+}
+
+.meter-center-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.meter-pct {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.meter-sub {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.score-hero-details-col {
+    flex: 1;
+}
+
+.score-level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.85rem;
+}
+
+.score-congrats-text {
+    font-family: var(--font-display);
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1.35;
+    margin-bottom: 1rem;
+}
+
+.highlight-score {
+    color: var(--primary-600);
+}
+
+[data-theme="dark"] .highlight-score {
+    color: var(--primary-400);
+}
+
+.highlight-pct {
+    color: var(--accent-purple);
+}
+
+.score-formula-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.formula-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.score-formula-box code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* 9. Pedagogical Evaluation Quote Box */
+.rei-evaluation-card {
+    background: var(--bg-card);
+    border: 1.5px solid var(--border-color);
+    border-left: 5px solid var(--primary-500);
+    border-radius: var(--border-radius);
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.eval-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.eval-icon {
+    font-size: 1.75rem;
+}
+
+.eval-title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.eval-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.eval-quote-text {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+    font-style: italic;
+    background: var(--bg-secondary);
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--border-radius-sm);
+    margin: 0;
+    border: 1px solid var(--border-color);
+}
+
+/* 10. Methodology Table (Darajalar Tasnifi) */
+.rei-methodology-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+}
+
+.table-section-header {
+    margin-bottom: 1.25rem;
+}
+
+.table-section-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.table-section-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.rei-table-responsive {
+    overflow-x: auto;
+}
+
+.rei-levels-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
+}
+
+.rei-levels-table th {
+    background: var(--bg-secondary);
+    color: var(--text-muted);
+    font-weight: 700;
+    text-align: left;
+    padding: 0.85rem 1rem;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rei-levels-table td {
+    padding: 1rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.tbl-level-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.tbl-level-cell b {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.user-here-badge {
+    display: inline-block;
+    background: #10b981;
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    width: fit-content;
+    text-transform: uppercase;
+}
+
+.tbl-score-pill {
+    display: inline-block;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.25rem 0.65rem;
+    border-radius: 8px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.active-level-row {
+    background: rgba(16, 185, 129, 0.08);
+}
+
+[data-theme="dark"] .active-level-row {
+    background: rgba(16, 185, 129, 0.14);
+}
+
+.active-level-row td {
+    border-bottom: 2px solid #10b981;
+}
+
+/* 11. 10 Competencies Breakdown */
+.rei-competencies-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.75rem;
+    margin-bottom: 2rem;
+}
+
+.comp-section-header {
+    margin-bottom: 1.25rem;
+}
+
+.comp-section-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.comp-section-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.rei-comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.rei-comp-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    transition: transform 0.2s ease;
+}
+
+.rei-comp-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.comp-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.comp-code {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--primary-600);
+    background: rgba(59, 130, 246, 0.1);
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+}
+
+[data-theme="dark"] .comp-code {
+    color: var(--primary-400);
+}
+
+.comp-name {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.4;
+    min-height: 2.6em;
+}
+
+.comp-meter-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.comp-track {
+    flex: 1;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .comp-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.comp-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+.comp-pct-val {
+    font-size: 0.85rem;
+    font-weight: 800;
+    min-width: 40px;
+    text-align: right;
+}
+
+.comp-footer-score {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.5rem;
+}
+
+.comp-footer-score b {
+    color: var(--text-primary);
+}
+
+/* 12. Results Actions Footer */
+.rei-result-actions-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* 13. Responsiveness */
+@media (max-width: 868px) {
+    .rei-launch-banner {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1.5rem;
+    }
+    .rei-launch-action {
+        width: 100%;
+    }
+    .btn-rei-launch-hero {
+        width: 100%;
+    }
+    .rei-options-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    .rei-opt-btn {
+        padding: 0.5rem 0.25rem;
+    }
+    .rei-opt-label {
+        font-size: 0.7rem;
+    }
+    .rei-score-hero-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    .score-level-badge {
+        margin: 0 auto 0.85rem auto;
+    }
+    .score-formula-box {
+        text-align: left;
+    }
+    .rei-result-actions-footer {
+        flex-direction: column;
+    }
+    .rei-result-actions-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .rei-options-grid {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+    .rei-opt-btn {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0.65rem 1rem;
+    }
+    .rei-opt-score {
+        margin-bottom: 0;
+    }
+    .rei-survey-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .footer-actions-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    .footer-actions-group .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -271,6 +271,7 @@
                 <button class="detection-tab" data-tab="face">😊 Yuz ifodalari</button>
                 <button class="detection-tab" data-tab="finger">🖐️ Barmoq bosimi</button>
                 <button class="detection-tab" data-tab="voice">🎤 Ovoz tahlili</button>
+                <button class="detection-tab tab-rei-direct" onclick="openReiQuestionnaireModal()">📊 REI so‘rovnomasi (38 ta)</button>
             </div>
 
             <!-- ==================== CAMERA AI EMOTION SCANNER ==================== -->
@@ -546,8 +547,72 @@
         <section id="page-simulations" class="page">
             <div class="page-header compact">
                 <h1 class="page-title">🎮 Simulyatsiyalar</h1>
-                <p class="page-description">Emotsional intelektni rivojlantiruvchi 8 ta interaktiv simulyatsiya</p>
+                <p class="page-description">Emotsional intelektni rivojlantiruvchi 8 ta interaktiv simulyatsiya va maxsus REI so‘rovnomasi</p>
             </div>
+
+            <!-- Prominent Highlighted REI Ni Aniqlash Banner (8 ta simulyatsiya tepasida ajralib turuvchi) -->
+            <div class="rei-launch-banner glass-card" id="rei-launch-banner">
+                <div class="rei-launch-glow"></div>
+                <div class="rei-launch-content">
+                    <div class="rei-launch-badge-row">
+                        <span class="rei-launch-badge">
+                            <span class="rei-pulse-dot"></span>
+                            <span>RASMIY METODIKA</span>
+                        </span>
+                        <span class="rei-launch-chip">Integral REI Ko‘rsatkichi</span>
+                    </div>
+                    <h2 class="rei-launch-title">Talabalarning raqamli emotsional intellektini aniqlash so‘rovnomasi</h2>
+                    <p class="rei-launch-desc">
+                        Talabalarning raqamli muhit va ijtimoiy tarmoqlarda o‘z emotsiyalarini anglash, boshqarish, boshqa insonlarning emotsiyalarini tushunish hamda konstruktiv raqamli munosabatlarni tashkil etish qobiliyatini 38 ta mezon orqali aniqlang va to'liq pedagogik tahlil oling.
+                    </p>
+                    <div class="rei-launch-meta-grid">
+                        <div class="rei-meta-item">
+                            <span class="rei-meta-icon">📋</span>
+                            <div>
+                                <b>38 ta savol</b>
+                                <small>10 ta kompetensiya bloki</small>
+                            </div>
+                        </div>
+                        <div class="rei-meta-item">
+                            <span class="rei-meta-icon">⚖️</span>
+                            <div>
+                                <b>1 – 5 ballik shkala</b>
+                                <small>Hech qachon → Har doim</small>
+                            </div>
+                        </div>
+                        <div class="rei-meta-item">
+                            <span class="rei-meta-icon">📈</span>
+                            <div>
+                                <b>Integral REI (%)</b>
+                                <small>Yuqori, O‘rta, Past daraja</small>
+                            </div>
+                        </div>
+                        <div class="rei-meta-item">
+                            <span class="rei-meta-icon">⏱️</span>
+                            <div>
+                                <b>5–7 daqiqa</b>
+                                <small>Avtomatik hisoblash</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="rei-launch-action">
+                    <button type="button" class="btn-rei-launch-hero" id="btn-open-rei-banner" onclick="openReiQuestionnaireModal()">
+                        <span class="rei-btn-pulse-ring"></span>
+                        <span class="rei-btn-icon">🧠</span>
+                        <span class="rei-btn-text">REI ni aniqlash</span>
+                        <span class="rei-btn-arrow">&rarr;</span>
+                    </button>
+                    <span class="rei-action-subtext">So‘rovnomani boshlash uchun bosing</span>
+                </div>
+            </div>
+
+            <!-- Interaktiv Simulyatsiyalar Sarlavhasi -->
+            <div class="simulations-subheading">
+                <h3>🎮 Interaktiv vaziyatli simulyatsiyalar (8 ta)</h3>
+                <p>Turli hayotiy va raqamli vaziyatlarda emotsional idrok va boshqarish ko'nikmalaringizni sinab ko'ring</p>
+            </div>
+
             <div class="simulations-grid" id="simulations-grid">
                 <!-- Populated by JS -->
             </div>
@@ -999,6 +1064,17 @@
                 <button type="button" class="btn btn-primary" onclick="closeCameraSnapshotModal()">
                     <span>✅ Tushundim</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== REI QUESTIONNAIRE MODAL ==================== -->
+    <div id="rei-questionnaire-modal" class="modal rei-modal">
+        <div class="modal-overlay" onclick="closeReiQuestionnaireModal()"></div>
+        <div class="modal-content rei-modal-content wide">
+            <button class="modal-close" onclick="closeReiQuestionnaireModal()">&times;</button>
+            <div class="modal-body rei-modal-body" id="rei-modal-body">
+                <!-- Dynamically populated by JS: survey questions or results -->
             </div>
         </div>
     </div>

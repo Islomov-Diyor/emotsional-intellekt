@@ -370,3 +370,116 @@ const glossaryData = [
     { term: "Virtual empatiya", definition: "Raqamli muhitda (chat, video, ijtimoiy tarmoq) boshqalarning hissiyotlarini sezish va ularga mos munosabatda bo'lish qobiliyati." }
 ];
 
+// ====================================================
+// RAQAMLI EMOTIONAL INTELLEKTNI (REI) ANIQLASH SO'ROVNOMASI
+// 38 ta savol, 10 ta blok, 1-5 ballik shkala
+// ====================================================
+const reiQuestionnaireData = {
+    title: "Talabalarning raqamli emotsional intellektini aniqlash so‘rovnomasi",
+    purpose: "Talabalarning raqamli muhit va ijtimoiy tarmoqlarda o‘z emotsiyalarini anglash, boshqarish, boshqa insonlarning emotsiyalarini tushunish hamda konstruktiv raqamli munosabatlarni tashkil etish qobiliyatini aniqlash.",
+    instructions: "Har bir fikr sizning raqamli muhitdagi odatiy xatti-harakatingizga qanchalik mos kelishini belgilang: 5 ball “har doim”, 4 ball “ko‘pincha”, 3 ball “ba’zan”, 2 ball “kamdan-kam”, 1 ball “hech qachon”.",
+    scale: [
+        { value: 5, label: "Har doim" },
+        { value: 4, label: "Ko‘pincha" },
+        { value: 3, label: "Ba’zan" },
+        { value: 2, label: "Kamdan-kam" },
+        { value: 1, label: "Hech qachon" }
+    ],
+    categories: [
+        { id: 1, code: "I", name: "Raqamli emotsional o‘zini anglash", icon: "👁️", questionIds: [1, 2, 3, 4] },
+        { id: 2, code: "II", name: "Raqamli muhitdagi ijobiy o‘zini baholash", icon: "💎", questionIds: [5, 6, 7, 8] },
+        { id: 3, code: "III", name: "Raqamli emotsional o‘zini boshqarish", icon: "🧘", questionIds: [9, 10, 11, 12] },
+        { id: 4, code: "IV", name: "Raqamli assertivlik", icon: "🛡️", questionIds: [13, 14, 15, 16] },
+        { id: 5, code: "V", name: "Raqamli adaptivlik", icon: "🌊", questionIds: [17, 18, 19, 20] },
+        { id: 6, code: "VI", name: "Raqamli mustaqillik", icon: "🧭", questionIds: [21, 22, 23] },
+        { id: 7, code: "VII", name: "Raqamli empatiya", icon: "🤝", questionIds: [24, 25, 26, 27] },
+        { id: 8, code: "VIII", name: "Raqamli ta’sir va ijobiy yetakchilik", icon: "🌟", questionIds: [28, 29, 30, 31] },
+        { id: 9, code: "IX", name: "Boshqalarning rivojlanishini qo‘llab-quvvatlash", icon: "🌱", questionIds: [32, 33, 34] },
+        { id: 10, code: "X", name: "Raqamli konfliktlarni boshqarish", icon: "⚖️", questionIds: [35, 36, 37, 38] }
+    ],
+    questions: [
+        { id: 1, categoryId: 1, text: "Ijtimoiy tarmoqlardagi ma’lumotlar mening kayfiyatimga qanday ta’sir qilayotganini anglay olaman." },
+        { id: 2, categoryId: 1, text: "Onlayn muloqot vaqtida paydo bo‘layotgan emotsiyalarimni aniqlay olaman." },
+        { id: 3, categoryId: 1, text: "Qaysi raqamli kontent menda ijobiy yoki salbiy emotsiya uyg‘otishini bilaman." },
+        { id: 4, categoryId: 1, text: "Internetdan uzoq vaqt foydalanish emotsional holatimga qanday ta’sir qilishini sezaman." },
+        { id: 5, categoryId: 2, text: "Raqamli muhitda o‘z fikrimni ifodalashda o‘zimga ishonaman." },
+        { id: 6, categoryId: 2, text: "Ijtimoiy tarmoqlarda boshqalarning muvaffaqiyatlarini ko‘rish o‘zimni qadrlashimga keskin salbiy ta’sir qilmaydi." },
+        { id: 7, categoryId: 2, text: "Internetdagi “layk”, izoh va reaksiyalar mening o‘zimga bergan bahoyimni to‘liq belgilamaydi." },
+        { id: 8, categoryId: 2, text: "Raqamli muhitda o‘z kuchli va zaif tomonlarimni to‘g‘ri baholay olaman." },
+        { id: 9, categoryId: 3, text: "Internetda meni jahlimni chiqaradigan xabarni ko‘rsam, darhol keskin javob bermayman." },
+        { id: 10, categoryId: 3, text: "Onlayn bahs vaqtida emotsiyalarimni nazorat qila olaman." },
+        { id: 11, categoryId: 3, text: "Salbiy izoh yoki tanqid olganimda vaziyatni xotirjam baholashga harakat qilaman." },
+        { id: 12, categoryId: 3, text: "Raqamli muhitdagi stress mening xatti-harakatlarimni boshqarishiga yo‘l qo‘ymaslikka harakat qilaman." },
+        { id: 13, categoryId: 4, text: "Onlayn muloqotda o‘z fikrimni boshqalarni kamsitmasdan ifodalay olaman." },
+        { id: 14, categoryId: 4, text: "Noto‘g‘ri yoki haqoratli munosabatga duch kelsam, o‘z pozitsiyamni madaniyatli tarzda himoya qila olaman." },
+        { id: 15, categoryId: 4, text: "Raqamli guruhlarda boshqalarning fikriga qo‘shilmasam ham hurmat bilan munosabat bildiraman." },
+        { id: 16, categoryId: 4, text: "Internetda kerak bo‘lganda “yo‘q” deyish va shaxsiy chegaralarimni himoya qilishni bilaman." },
+        { id: 17, categoryId: 5, text: "Yangi raqamli platforma va muloqot muhitiga tez moslasha olaman." },
+        { id: 18, categoryId: 5, text: "Onlayn muloqotdagi kutilmagan vaziyatlarga mos ravishda xatti-harakatimni o‘zgartira olaman." },
+        { id: 19, categoryId: 5, text: "Raqamli muhitdagi o‘zgarishlar menda ortiqcha emotsional zo‘riqish yuzaga keltirmasligi uchun moslashishga harakat qilaman." },
+        { id: 20, categoryId: 5, text: "Turli raqamli platformalarda muloqot uslubimni vaziyatga moslashtira olaman." },
+        { id: 21, categoryId: 6, text: "Internetdagi ommaviy fikrga ergashishdan oldin mustaqil fikrlashga harakat qilaman." },
+        { id: 22, categoryId: 6, text: "Ijtimoiy tarmoqlardagi boshqalarning fikri mening qarorlarimni avtomatik ravishda belgilamaydi." },
+        { id: 23, categoryId: 6, text: "Onlayn bosim yoki salbiy munosabat bo‘lsa ham asoslangan qarorimni saqlab qola olaman." },
+        { id: 24, categoryId: 7, text: "Yozishmalar orqali boshqa insonning emotsional holatini tushunishga harakat qilaman." },
+        { id: 25, categoryId: 7, text: "Internetda biror kishining tushkun yoki xafa ekanini sezsam, unga ehtiyotkorlik bilan munosabat bildiraman." },
+        { id: 26, categoryId: 7, text: "Izoh yozishdan oldin mening so‘zlarim boshqa insonning his-tuyg‘ulariga qanday ta’sir qilishini o‘ylayman." },
+        { id: 27, categoryId: 7, text: "Raqamli muloqotda boshqalarning hissiyotlarini hurmat qilaman." },
+        { id: 28, categoryId: 8, text: "Onlayn guruhda ijobiy va hurmatga asoslangan muloqotni qo‘llab-quvvatlashga harakat qilaman." },
+        { id: 29, categoryId: 8, text: "Raqamli muhitda boshqalarning konstruktiv faoliyatini rag‘batlantira olaman." },
+        { id: 30, categoryId: 8, text: "Guruhdagi salbiy kayfiyatni ijobiy tomonga o‘zgartirishga hissa qo‘sha olaman." },
+        { id: 31, categoryId: 8, text: "Raqamli muloqot orqali boshqalarni foydali faoliyatga unday olaman." },
+        { id: 32, categoryId: 9, text: "Onlayn muhitda boshqalarga foydali maslahat va konstruktiv fikr bildirishga harakat qilaman." },
+        { id: 33, categoryId: 9, text: "Guruhdoshlarimning raqamli faoliyatdagi muvaffaqiyatlarini qo‘llab-quvvatlayman." },
+        { id: 34, categoryId: 9, text: "Kimdir raqamli muhitda xatoga yo‘l qo‘ysa, uni kamsitish o‘rniga tushuntirishga harakat qilaman." },
+        { id: 35, categoryId: 10, text: "Onlayn bahs yuzaga kelganda muammoni tinch yo‘l bilan hal qilishga harakat qilaman." },
+        { id: 36, categoryId: 10, text: "Raqamli muhitdagi kelishmovchilikda ikkala tomonning fikrini tushunishga harakat qilaman." },
+        { id: 37, categoryId: 10, text: "Provokatsion xabar yoki izohlarga emotsional tarzda javob berishdan saqlanaman." },
+        { id: 38, categoryId: 10, text: "Onlayn konfliktni davom ettirish o‘rniga konstruktiv yechim topishga intilaman." }
+    ],
+    levels: [
+        {
+            key: "yuqori",
+            title: "Yuqori daraja",
+            scoreRange: "145–190 ball",
+            reiRange: "76–100%",
+            minScore: 145,
+            maxScore: 190,
+            minPct: 76,
+            maxPct: 100,
+            color: "var(--success)",
+            badgeColor: "#10b981",
+            icon: "🌟",
+            description: "Siz raqamli muhitda o‘z emotsiyalaringizni yaxshi anglaysiz va boshqara olasiz. Onlayn muloqotda empatiya namoyon qilasiz, boshqalarning hissiy holatini hisobga olasiz, salbiy ta’sir va provokatsiyalarga nisbatan o‘zingizni nazorat qila olasiz. Raqamli konfliktlarni konstruktiv hal qilasiz, o‘z fikringizni madaniyatli va ishonchli ifodalaysiz hamda raqamli muhitda ijobiy munosabatlarni shakllantira olasiz."
+        },
+        {
+            key: "orta",
+            title: "O‘rta daraja",
+            scoreRange: "97–144 ball",
+            reiRange: "51–75%",
+            minScore: 97,
+            maxScore: 144,
+            minPct: 51,
+            maxPct: 75,
+            color: "var(--warning)",
+            badgeColor: "#f59e0b",
+            icon: "⚡",
+            description: "Siz raqamli muhitdagi o‘z emotsiyalaringizni asosan anglaysiz, biroq ayrim vaziyatlarda ularni boshqarishda qiyinchiliklarga duch kelasiz. Raqamli empatiya va konstruktiv muloqot ko‘nikmalari mavjud, ammo barqaror namoyon bo‘lmaydi. Salbiy izoh, tanqid, bahs yoki stressli vaziyatlarda emotsional reaksiyalaringizni nazorat qilish uchun qo‘shimcha ko‘nikmalarni rivojlantirish talab etiladi."
+        },
+        {
+            key: "past",
+            title: "Past daraja",
+            scoreRange: "38–96 ball",
+            reiRange: "20–50%",
+            minScore: 38,
+            maxScore: 96,
+            minPct: 20,
+            maxPct: 50,
+            color: "var(--danger)",
+            badgeColor: "#ef4444",
+            icon: "⚠️",
+            description: "Siz raqamli muhitda o‘z emotsional holatingizni anglash va boshqarishda qiyinchiliklarga duch kelasiz. Boshqalarning hissiy holatini tushunish, raqamli empatiya ko‘rsatish va onlayn muloqotni konstruktiv tashkil etish ko‘nikmalari yetarli shakllanmagan. Salbiy axborot, tanqid, provokatsiya yoki konfliktli vaziyatlarda impulsiv emotsional reaksiya bildirish ehtimoli yuqoriroq bo‘lib, raqamli emotsional o‘zingizni boshqarish ko‘nikmalarini rivojlantirish zarur."
+        }
+    ]
+};
+

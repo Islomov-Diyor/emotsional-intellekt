@@ -3633,3 +3633,534 @@ window.toggleChangePassBox = function() {
     box.classList.toggle('hidden');
     if (arrow) arrow.textContent = box.classList.contains('hidden') ? '▼' : '▲';
 };
+
+// =============================================================================
+// 10. TALABALARNING RAQAMLI EMOTIONAL INTELLEKTINI (REI) ANIQLASH MODULI
+// 38 ta mezonli so'rovnoma, 10 ta kompetensiya bloki, Integral REI hisoblash
+// =============================================================================
+const ReiSurveyState = {
+    answers: {}, // { questionId: ratingNumber (1..5) }
+    activeCategory: 'all',
+    lastResult: null
+};
+
+window.openReiQuestionnaireModal = function() {
+    const modal = document.getElementById('rei-questionnaire-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Har safar so'rovnoma ochilganda barcha savollar bo'sh (tanlanmagan) holatda boshlanadi
+    ReiSurveyState.answers = {};
+    ReiSurveyState.lastResult = null;
+    ReiSurveyState.activeCategory = 'all';
+    renderReiSurvey();
+};
+
+window.closeReiQuestionnaireModal = function() {
+    const modal = document.getElementById('rei-questionnaire-modal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+};
+
+window.renderReiSurvey = function() {
+    const container = document.getElementById('rei-modal-body');
+    if (!container || typeof reiQuestionnaireData === 'undefined') return;
+
+    const data = reiQuestionnaireData;
+    const answeredCount = Object.keys(ReiSurveyState.answers).length;
+    const totalCount = data.questions.length;
+    const progressPct = Math.round((answeredCount / totalCount) * 100);
+
+    let html = `
+        <div class="rei-survey-wrapper">
+            <!-- Modal Header -->
+            <div class="rei-survey-header">
+                <div class="rei-badge-pill">
+                    <span class="pulse-dot"></span>
+                    <span>METODIK SO'ROVNOMA • 38 TA SAVOL</span>
+                </div>
+                <h2 class="rei-survey-main-title">🧠 ${data.title}</h2>
+                <div class="rei-purpose-box">
+                    <div class="purpose-item">
+                        <span class="p-icon">🎯</span>
+                        <div><b>Maqsad:</b> ${data.purpose}</div>
+                    </div>
+                    <div class="purpose-item">
+                        <span class="p-icon">📝</span>
+                        <div><b>Javob berish tartibi:</b> Har bir fikr sizning raqamli muhitdagi odatiy xatti-harakatingizga qanchalik mos kelishini belgilang: <b>5 ball</b> — “har doim”, <b>4 ball</b> — “ko‘pincha”, <b>3 ball</b> — “ba’zan”, <b>2 ball</b> — “kamdan-kam”, <b>1 ball</b> — “hech qachon”.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticky Progress Tracker -->
+            <div class="rei-sticky-tracker">
+                <div class="tracker-flex">
+                    <div class="tracker-info">
+                        <span class="tracker-label">Javob berilgan savollar:</span>
+                        <span class="tracker-count"><b id="rei-answered-val">${answeredCount}</b> / ${totalCount} ta</span>
+                    </div>
+                    <div class="tracker-pct-badge" id="rei-progress-pct-badge">${progressPct}%</div>
+                </div>
+                <div class="tracker-bar-track">
+                    <div class="tracker-bar-fill" id="rei-progress-bar-fill" style="width: ${progressPct}%;"></div>
+                </div>
+
+                <!-- Category filter chips -->
+                <div class="rei-category-chips">
+                    <button type="button" class="rei-cat-chip ${ReiSurveyState.activeCategory === 'all' ? 'active' : ''}" onclick="filterReiCategory('all')">
+                        Barchasi (38)
+                    </button>
+                    ${data.categories.map(cat => `
+                        <button type="button" class="rei-cat-chip ${ReiSurveyState.activeCategory === cat.id ? 'active' : ''}" onclick="filterReiCategory(${cat.id})">
+                            ${cat.code}. ${cat.name}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Questions Container -->
+            <div class="rei-questions-list" id="rei-questions-list">
+    `;
+
+    // Filter categories to display
+    const visibleCategories = ReiSurveyState.activeCategory === 'all' 
+        ? data.categories 
+        : data.categories.filter(c => c.id === ReiSurveyState.activeCategory);
+
+    visibleCategories.forEach(category => {
+        const catQuestions = data.questions.filter(q => q.categoryId === category.id);
+        const answeredInCat = catQuestions.filter(q => ReiSurveyState.answers[q.id] !== undefined).length;
+
+        html += `
+            <div class="rei-category-section" id="rei-cat-sec-${category.id}">
+                <div class="rei-category-heading">
+                    <div class="cat-heading-left">
+                        <span class="cat-icon-badge">${category.icon || '📌'}</span>
+                        <div>
+                            <h3 class="cat-title">${category.code}. ${category.name}</h3>
+                            <span class="cat-meta">${catQuestions.length} ta savol (${catQuestions[0].id}–${catQuestions[catQuestions.length - 1].id})</span>
+                        </div>
+                    </div>
+                    <div class="cat-progress-tag" id="cat-prog-${category.id}">
+                        ${answeredInCat} / ${catQuestions.length} belgilandi
+                    </div>
+                </div>
+
+                <div class="rei-category-items">
+                    ${catQuestions.map(q => {
+                        const currentAnswer = ReiSurveyState.answers[q.id];
+                        return `
+                            <div class="rei-question-card ${currentAnswer !== undefined ? 'answered' : ''}" id="rei-q-${q.id}">
+                                <div class="rei-q-header">
+                                    <span class="rei-q-number">${q.id}</span>
+                                    <p class="rei-q-text">${q.text}</p>
+                                </div>
+                                <div class="rei-options-grid">
+                                    ${data.scale.map(opt => `
+                                        <button type="button" 
+                                            class="rei-opt-btn ${currentAnswer === opt.value ? 'selected' : ''}" 
+                                            onclick="selectReiAnswer(${q.id}, ${opt.value})"
+                                            id="rei-opt-${q.id}-${opt.value}"
+                                            title="${opt.value} ball">
+                                            <span class="rei-opt-score">${opt.value} ball</span>
+                                            <span class="rei-opt-label">${opt.label}</span>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+            </div>
+
+            <!-- Survey Footer Toolbar -->
+            <div class="rei-survey-footer">
+                <div class="footer-left-status">
+                    <span class="footer-status-icon" id="rei-footer-icon">${answeredCount === totalCount ? '✅' : '⏳'}</span>
+                    <span id="rei-footer-status-text">
+                        ${answeredCount === totalCount 
+                            ? 'Barcha 38 ta savol belgilandi! Natijani hisoblashingiz mumkin.' 
+                            : `To‘ldirish davom etmoqda: ${totalCount - answeredCount} ta savol qoldi.`}
+                    </span>
+                </div>
+                <div class="footer-actions-group">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="resetReiSurveyAnswers()">
+                        <span>🔄 Qayta tozalash</span>
+                    </button>
+                    <button type="button" class="btn btn-primary btn-calc-rei" id="btn-calc-rei" onclick="submitReiSurvey()">
+                        <span>📊 Natijani hisoblash (REI) &rarr;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+};
+
+window.filterReiCategory = function(catId) {
+    ReiSurveyState.activeCategory = catId;
+    renderReiSurvey();
+};
+
+window.selectReiAnswer = function(qId, val) {
+    ReiSurveyState.answers[qId] = val;
+
+    // Update DOM instantly for smooth 60fps responsiveness
+    const qCard = document.getElementById(`rei-q-${qId}`);
+    if (qCard) {
+        qCard.classList.add('answered');
+        qCard.classList.remove('missing-warning');
+
+        // Deselect all buttons for this question
+        const btns = qCard.querySelectorAll('.rei-opt-btn');
+        btns.forEach(btn => btn.classList.remove('selected'));
+
+        // Select the chosen one
+        const activeBtn = document.getElementById(`rei-opt-${qId}-${val}`);
+        if (activeBtn) activeBtn.classList.add('selected');
+    }
+
+    // Update progress numbers
+    const answeredCount = Object.keys(ReiSurveyState.answers).length;
+    const totalCount = reiQuestionnaireData.questions.length;
+    const pct = Math.round((answeredCount / totalCount) * 100);
+
+    const countElem = document.getElementById('rei-answered-val');
+    if (countElem) countElem.textContent = answeredCount;
+
+    const pctElem = document.getElementById('rei-progress-pct-badge');
+    if (pctElem) pctElem.textContent = `${pct}%`;
+
+    const barFill = document.getElementById('rei-progress-bar-fill');
+    if (barFill) barFill.style.width = `${pct}%`;
+
+    const footerIcon = document.getElementById('rei-footer-icon');
+    const footerText = document.getElementById('rei-footer-status-text');
+    if (footerText) {
+        if (answeredCount === totalCount) {
+            if (footerIcon) footerIcon.textContent = '✅';
+            footerText.textContent = 'Barcha 38 ta savol belgilandi! Natijani hisoblashingiz mumkin.';
+        } else {
+            if (footerIcon) footerIcon.textContent = '⏳';
+            footerText.textContent = `To‘ldirish davom etmoqda: ${totalCount - answeredCount} ta savol qoldi.`;
+        }
+    }
+};
+
+window.resetReiSurveyAnswers = function() {
+    ReiSurveyState.answers = {};
+    ReiSurveyState.lastResult = null;
+    renderReiSurvey();
+};
+
+window.submitReiSurvey = function() {
+    if (typeof reiQuestionnaireData === 'undefined') return;
+    const data = reiQuestionnaireData;
+    const answeredIds = Object.keys(ReiSurveyState.answers).map(Number);
+    const missing = data.questions.filter(q => !answeredIds.includes(q.id));
+
+    if (missing.length > 0) {
+        // If some are filtered out by category, reset filter to 'all'
+        if (ReiSurveyState.activeCategory !== 'all') {
+            ReiSurveyState.activeCategory = 'all';
+            renderReiSurvey();
+        }
+
+        // Highlight missing questions
+        missing.forEach(q => {
+            const card = document.getElementById(`rei-q-${q.id}`);
+            if (card) card.classList.add('missing-warning');
+        });
+
+        // Scroll to the first missing
+        const firstCard = document.getElementById(`rei-q-${missing[0].id}`);
+        if (firstCard) {
+            firstCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        if (window.showToast) {
+            window.showToast(`Iltimos, barcha 38 ta savolga javob bering! Qolib ketgan: ${missing.length} ta savol.`, "warning");
+        }
+        return;
+    }
+
+    // Calculation:
+    // ΣXᵢ: Total Score
+    let totalScore = 0;
+    for (let i = 1; i <= 38; i++) {
+        totalScore += (ReiSurveyState.answers[i] || 1);
+    }
+
+    // REI = ΣXᵢ / (38 × 5) × 100%
+    const maxScore = 38 * 5; // 190
+    const reiPct = Math.round((totalScore / maxScore) * 100);
+
+    // Determine Level:
+    // Yuqori: 145–190 ball → REI 76–100%
+    // O‘rta: 97–144 ball → REI 51–75%
+    // Past: 38–96 ball → REI 20–50%
+    let levelKey = 'past';
+    if (totalScore >= 145) {
+        levelKey = 'yuqori';
+    } else if (totalScore >= 97) {
+        levelKey = 'orta';
+    } else {
+        levelKey = 'past';
+    }
+
+    const currentLevel = data.levels.find(l => l.key === levelKey);
+
+    // Calculate Category Breakdown (10 blocks)
+    const categoryBreakdown = data.categories.map(cat => {
+        let catScore = 0;
+        cat.questionIds.forEach(id => {
+            catScore += (ReiSurveyState.answers[id] || 0);
+        });
+        const catMax = cat.questionIds.length * 5;
+        const catPct = Math.round((catScore / catMax) * 100);
+        return {
+            ...cat,
+            score: catScore,
+            maxScore: catMax,
+            pct: catPct
+        };
+    });
+
+    const resultObj = {
+        totalScore,
+        maxScore,
+        reiPct,
+        level: currentLevel,
+        levels: data.levels,
+        categories: categoryBreakdown,
+        completedAt: new Date().toLocaleString('uz-UZ')
+    };
+
+    ReiSurveyState.lastResult = resultObj;
+    renderReiResult(resultObj);
+};
+
+window.renderReiResult = function(result) {
+    const container = document.getElementById('rei-modal-body');
+    if (!container) return;
+
+    const { totalScore, maxScore, reiPct, level, levels, categories, completedAt } = result;
+
+    let badgeColor = level.badgeColor || '#10b981';
+
+    let html = `
+        <div class="rei-result-wrapper">
+            <!-- Header Bar -->
+            <div class="rei-result-header-bar">
+                <button type="button" class="btn btn-outline btn-sm" onclick="backToReiSurvey()">
+                    &larr; Savollarga qaytish
+                </button>
+                <div class="result-time-meta">
+                    🕒 Tekshirilgan vaqt: <b>${completedAt}</b>
+                </div>
+            </div>
+
+            <!-- Big Celebratory Score Hero -->
+            <div class="rei-score-hero-card glass-card">
+                <div class="score-hero-gauge-col">
+                    <div class="rei-circular-meter">
+                        <svg viewBox="0 0 120 120" class="meter-svg">
+                            <circle class="meter-bg" cx="60" cy="60" r="50"></circle>
+                            <circle class="meter-bar" cx="60" cy="60" r="50" 
+                                style="stroke-dasharray: 314; stroke-dashoffset: ${314 - (314 * reiPct) / 100}; stroke: ${badgeColor};">
+                            </circle>
+                        </svg>
+                        <div class="meter-center-text">
+                            <span class="meter-pct">${reiPct}%</span>
+                            <span class="meter-sub">REI Indeksi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="score-hero-details-col">
+                    <div class="score-level-badge" style="background:${badgeColor}20; color:${badgeColor}; border:1px solid ${badgeColor}40;">
+                        <span>${level.icon}</span>
+                        <span>${level.title.toUpperCase()}</span>
+                    </div>
+
+                    <h2 class="score-congrats-text">
+                        Siz <span class="highlight-score">${totalScore} ball</span> to‘pladingiz, REI ko‘rsatkichi <span class="highlight-pct">${reiPct}%</span>!
+                    </h2>
+
+                    <!-- Formula breakdown box -->
+                    <div class="score-formula-box">
+                        <span class="formula-title">📐 Matematik hisoblash formulasi:</span>
+                        <code>REI = ΣXᵢ / (n × 5) × 100% = ${totalScore} / (${38} × 5) × 100% = ${reiPct}%</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pedagogical Evaluation Box (User specifically asked for this with "Siz") -->
+            <div class="rei-evaluation-card glass-card">
+                <div class="eval-card-header">
+                    <span class="eval-icon">💡</span>
+                    <div>
+                        <h3 class="eval-title">Sizning pedagogik-psixologik tavsifingiz</h3>
+                        <p class="eval-sub">${level.title} bo‘yicha to‘liq metodik xulosa</p>
+                    </div>
+                </div>
+                <div class="eval-card-body">
+                    <blockquote class="eval-quote-text">
+                        “${level.description}”
+                    </blockquote>
+                </div>
+            </div>
+
+            <!-- Methodology Comparison Table (Darajalar Jadvali) -->
+            <div class="rei-methodology-section glass-card">
+                <div class="table-section-header">
+                    <div>
+                        <h3>📊 Raqamli emotsional intellekt (REI) darajalar tasnifi jadvali</h3>
+                        <p>Ushbu metodika bo‘yicha ballar va REI ko‘rsatkichlarining pedagogik mezonlari</p>
+                    </div>
+                </div>
+
+                <div class="rei-table-responsive">
+                    <table class="rei-levels-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 14%;">Daraja</th>
+                                <th style="width: 16%;">Ball diapazoni</th>
+                                <th style="width: 15%;">REI ko‘rsatkichi</th>
+                                <th>Pedagogik tavsif</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${levels.map(l => {
+                                const isUserLevel = (l.key === level.key);
+                                return `
+                                    <tr class="${isUserLevel ? 'active-level-row' : ''}">
+                                        <td>
+                                            <div class="tbl-level-cell">
+                                                <span class="tbl-icon">${l.icon}</span>
+                                                <b>${l.title}</b>
+                                                ${isUserLevel ? '<span class="user-here-badge">Sizning darajangiz</span>' : ''}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="tbl-score-pill">${l.scoreRange}</span>
+                                        </td>
+                                        <td>
+                                            <span class="tbl-rei-pill" style="color:${l.color}; font-weight:700;">${l.reiRange}</span>
+                                        </td>
+                                        <td class="tbl-desc-cell">
+                                            ${l.description}
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 10 Competencies Breakdown (10 ta blok bo'yicha tahlil) -->
+            <div class="rei-competencies-section glass-card">
+                <div class="comp-section-header">
+                    <div>
+                        <h3>🎯 10 ta kompetensiya bloki bo‘yicha tahliliy natijalar</h3>
+                        <p>Qaysi raqamli emotsional ko‘nikmalaringiz kuchli va qaysilarini yanada rivojlantirish zarurligini ko‘ring</p>
+                    </div>
+                </div>
+
+                <div class="rei-comp-grid">
+                    ${categories.map(c => `
+                        <div class="rei-comp-card">
+                            <div class="comp-card-top">
+                                <span class="comp-code">${c.code}</span>
+                                <span class="comp-icon">${c.icon || '📌'}</span>
+                            </div>
+                            <h4 class="comp-name">${c.name}</h4>
+                            <div class="comp-meter-row">
+                                <div class="comp-track">
+                                    <div class="comp-fill" style="width:${c.pct}%; background:${c.pct >= 75 ? 'var(--success)' : c.pct >= 50 ? 'var(--warning)' : 'var(--danger)'};"></div>
+                                </div>
+                                <span class="comp-pct-val" style="color:${c.pct >= 75 ? 'var(--success)' : c.pct >= 50 ? 'var(--warning)' : 'var(--danger)'};">
+                                    ${c.pct}%
+                                </span>
+                            </div>
+                            <div class="comp-footer-score">
+                                <span>To‘plangan ball:</span>
+                                <b>${c.score} / ${c.maxScore}</b>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- Action Buttons Footer -->
+            <div class="rei-result-actions-footer">
+                <button type="button" class="btn btn-outline" onclick="copyReiResultSummary()">
+                    <span>📋 Xulosani nusxalash</span>
+                </button>
+                <button type="button" class="btn btn-outline" onclick="printReiResultReport()">
+                    <span>🖨️ Natijani chop etish / Saqlash</span>
+                </button>
+                <button type="button" class="btn btn-outline" onclick="backToReiSurvey()">
+                    <span>🔄 Qayta topshirish</span>
+                </button>
+                <button type="button" class="btn btn-primary" onclick="closeReiQuestionnaireModal()">
+                    <span>✅ Tushundim va yakunlash</span>
+                </button>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+};
+
+window.backToReiSurvey = function() {
+    renderReiSurvey();
+};
+
+window.copyReiResultSummary = function() {
+    if (!ReiSurveyState.lastResult) return;
+    const { totalScore, maxScore, reiPct, level } = ReiSurveyState.lastResult;
+    const text = `🧠 TALABALARNING RAQAMLI EMOTSIONAL INTELLEKTINI ANIQLASH SO'ROVNOMASI NATIJALARI\n\n` +
+                 `To'plangan ball: ${totalScore} / ${maxScore} ball\n` +
+                 `Integral REI ko'rsatkichi: ${reiPct}%\n` +
+                 `Daraja: ${level.title}\n\n` +
+                 `Pedagogik tavsif:\n"${level.description}"\n\n` +
+                 `Platforma: Raqamli emotsional intelektni rivojlantirish`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            if (window.showToast) window.showToast("Natija xulosasi xotiraga nusxalandi!", "success");
+        }).catch(() => {
+            fallbackCopyText(text);
+        });
+    } else {
+        fallbackCopyText(text);
+    }
+};
+
+function fallbackCopyText(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+        document.execCommand('copy');
+        if (window.showToast) window.showToast("Natija xulosasi nusxalandi!", "success");
+    } catch (e) {
+        alert("Xulosani nusxalab oling:\n\n" + text);
+    }
+    document.body.removeChild(ta);
+}
+
+window.printReiResultReport = function() {
+    window.print();
+};
+
