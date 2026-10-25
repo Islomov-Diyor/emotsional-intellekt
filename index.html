@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=3.3">
+    <link rel="stylesheet" href="styles.css?v=3.5">
     <style>
         /* Critical styles for REI launch banner & button to bypass browser cache */
         .rei-launch-banner {
@@ -79,6 +79,13 @@
             border-color: #1d4ed8 !important;
             color: #ffffff !important;
         }
+        .rei-opt-score {
+            display: none !important;
+        }
+        .rei-opt-label {
+            font-size: 0.92rem !important;
+            font-weight: 600 !important;
+        }
     </style>
 <body>
     <!-- Splash / Loading Screen -->
@@ -99,7 +106,7 @@
             <div class="logo-icon">🧠</div>
             <div class="logo-text">
                 <span class="logo-title">REI Platform</span>
-                <span class="logo-sub">Emotsional intelekt</span>
+                <span class="logo-sub">Raqamli emotsional intellekt</span>
             </div>
             <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
                 <span></span><span></span><span></span>
@@ -132,7 +139,7 @@
             </li>
             <li class="nav-item" data-page="detection">
                 <span class="nav-icon">🔍</span>
-                <span class="nav-text">EI aniqlash</span>
+                <span class="nav-text">REI aniqlash</span>
             </li>
             <li class="nav-item" data-page="simulations">
                 <span class="nav-icon">🎮</span>
@@ -268,9 +275,14 @@
 
         <!-- ==================== LECTURES PAGE ==================== -->
         <section id="page-lectures" class="page">
-            <div class="page-header compact">
-                <h1 class="page-title">📖 Ma'ruzalar</h1>
-                <p class="page-description">Raqamli emotsional intellekt bo'yicha ma'ruza materiallari</p>
+            <div class="page-header compact" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                <div>
+                    <h1 class="page-title">📖 Ma'ruzalar</h1>
+                    <p class="page-description">Raqamli emotsional intellekt bo'yicha ma'ruza materiallari</p>
+                </div>
+                <a href="https://drive.google.com/drive/folders/16zB1hycaRV8Ghb9airbRVetNWv69dj_0" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="border-color:#2563eb; color:#2563eb; font-weight:600; text-decoration:none; padding:0.55rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.4rem;">
+                    <span>📁 Google Disk papkasini ochish</span> ↗
+                </a>
             </div>
             <div class="search-bar">
                 <input type="text" id="lecture-search" class="search-input" placeholder="Ma'ruza qidirish...">
@@ -294,9 +306,14 @@
 
         <!-- ==================== PRESENTATIONS PAGE ==================== -->
         <section id="page-presentations" class="page">
-            <div class="page-header compact">
-                <h1 class="page-title">📽️ Taqdimotlar</h1>
-                <p class="page-description">Raqamli emotsional intellekt bo'yicha ko'rgazmali slaydlar va taqdimot fayllari (.pptx)</p>
+            <div class="page-header compact" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                <div>
+                    <h1 class="page-title">📽️ Taqdimotlar</h1>
+                    <p class="page-description">Raqamli emotsional intellekt bo'yicha ko'rgazmali slaydlar va taqdimot fayllari (.pptx)</p>
+                </div>
+                <a href="https://drive.google.com/drive/folders/1GT9vhfQTuAEPylLRMwDtqCccxH1bq3U5" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="border-color:#d97706; color:#d97706; font-weight:600; text-decoration:none; padding:0.55rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.4rem;">
+                    <span>📁 Taqdimotlar Google Disk papkasi</span> ↗
+                </a>
             </div>
             <div class="search-bar">
                 <input type="text" id="presentation-search" class="search-input" placeholder="Taqdimot qidirish...">
@@ -309,9 +326,14 @@
 
         <!-- ==================== PRACTICALS PAGE ==================== -->
         <section id="page-practicals" class="page">
-            <div class="page-header compact">
-                <h1 class="page-title">✍️ Amaliy topshiriqlar</h1>
-                <p class="page-description">Amaliy topshiriqlar va mashg'ulotlar to'plami</p>
+            <div class="page-header compact" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                <div>
+                    <h1 class="page-title">✍️ Amaliy topshiriqlar</h1>
+                    <p class="page-description">Amaliy topshiriqlar va mashg'ulotlar to'plami</p>
+                </div>
+                <a href="https://drive.google.com/drive/folders/1ViV5KR0qPX7wbtClU8lpRAcAjfmgl7DI" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="border-color:#7c3aed; color:#7c3aed; font-weight:600; text-decoration:none; padding:0.55rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.4rem;">
+                    <span>📁 Amaliy mashg'ulotlar Google Disk papkasi</span> ↗
+                </a>
             </div>
             <div class="search-bar">
                 <input type="text" id="practical-search" class="search-input" placeholder="Topshiriq qidirish...">
@@ -496,21 +518,21 @@
                                 </div>
                             </div>
 
-                            <!-- Overall EI Score -->
+                            <!-- Overall REI Score -->
                             <div class="rei-meter-box">
                                 <div class="rei-score-circle">
                                     <span class="score-number" id="camera-rei-score">84</span>
                                     <span class="score-max">/100</span>
                                 </div>
                                 <div class="rei-score-text">
-                                    <h5>Raqamli EI holati: <span id="camera-rei-grade" style="color:var(--success);">A'lo</span></h5>
+                                    <h5>REI holati: <span id="camera-rei-grade" style="color:var(--success);">A'lo</span></h5>
                                     <p id="camera-rei-summary">Hissiyotlaringiz barqaror, raqamli muhitda diqqatni to'plash qobiliyatingiz yuqori darajada.</p>
                                 </div>
                             </div>
 
                             <!-- Dynamic Psychological Tip -->
                             <div class="camera-recommendation-box" id="camera-recommendation-box">
-                                <div class="rec-title">💡 <b>Raqamli EI bo'yicha tavsiya:</b></div>
+                                <div class="rec-title">💡 <b>REI bo'yicha tavsiya:</b></div>
                                 <p id="camera-rec-text">
                                     Ushbu ijobiy energiyani ijodiy topshiriqlarni yechishga va guruhdagi tengdoshlaringizga ko'tarinkilik ulashishga yo'naltiring.
                                 </p>
@@ -1111,7 +1133,7 @@
                 <div class="camera-snapshot-report">
                     <div class="snapshot-score-banner">
                         <div class="snapshot-banner-metric">
-                            <span class="banner-lbl">Umumiy EI Indeksi</span>
+                            <span class="banner-lbl">Umumiy REI Indeksi</span>
                             <div class="banner-score"><span id="snap-score-num">86</span><small>/100</small></div>
                         </div>
                         <div class="snapshot-banner-badge" id="snap-grade-badge">A'lo daraja</div>
@@ -1174,7 +1196,7 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="data.js?v=3.3"></script>
-    <script src="app.js?v=3.3"></script>
+    <script src="data.js?v=3.5"></script>
+    <script src="app.js?v=3.5"></script>
 </body>
 </html>

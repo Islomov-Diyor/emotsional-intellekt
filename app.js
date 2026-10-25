@@ -319,39 +319,28 @@ class FileStorageManager {
             this.isReady = true;
         }
 
-        // Barcha sun'iy mock materiallarni (mat-*, pres-*, prac-*, test-*) tozalash
+        // Eski soxta mock linklarni tozalash
         this.memoryFiles = (this.memoryFiles || []).filter(f => 
-            !f.id?.startsWith('mat-') && 
-            !f.id?.startsWith('pres-') && 
-            !f.id?.startsWith('prac-') && 
-            !f.id?.startsWith('test-') && 
             !(f.driveUrl && f.driveUrl.includes('1_rei_pedagogik_konfliktlar_'))
         );
-        this.saveToLocalStorage();
 
-        if (this.db) {
-            try {
-                const tx = this.db.transaction([this.storeName], 'readwrite');
-                const store = tx.objectStore(this.storeName);
-                const req = store.openCursor();
-                req.onsuccess = (e) => {
-                    const cursor = e.target.result;
-                    if (cursor) {
-                        const rec = cursor.value;
-                        if (
-                            rec.id?.startsWith('mat-') || 
-                            rec.id?.startsWith('pres-') || 
-                            rec.id?.startsWith('prac-') || 
-                            rec.id?.startsWith('test-') || 
-                            (rec.driveUrl && rec.driveUrl.includes('1_rei_pedagogik_konfliktlar_'))
-                        ) {
-                            cursor.delete();
-                        }
-                        cursor.continue();
+        // data.js dagi rasmiy Google Disk materiallarini yuklash (barcha tashrif buyuruvchilar va ustoz uchun)
+        if (typeof defaultPlatformMaterials !== 'undefined' && Array.isArray(defaultPlatformMaterials)) {
+            const memoryMap = new Map();
+            this.memoryFiles.forEach(f => memoryMap.set(f.id, f));
+
+            defaultPlatformMaterials.forEach(m => {
+                if (!memoryMap.has(m.id)) {
+                    this.memoryFiles.push({ ...m });
+                } else {
+                    const existing = memoryMap.get(m.id);
+                    if (!existing.driveId || (existing.driveUrl && existing.driveUrl.includes('1_rei_pedagogik_konfliktlar_'))) {
+                        Object.assign(existing, m);
                     }
-                };
-            } catch (e) {}
+                }
+            });
         }
+        this.saveToLocalStorage();
 
         this.updateBadgesAndUI();
     }
@@ -602,7 +591,22 @@ class FileStorageManager {
     }
 
     downloadFile(id) {
-        const file = this.memoryFiles.find(f => f.id === id);
+        let file = (this.memoryFiles || []).find(f => f.id === id);
+        if (!file && typeof defaultPlatformMaterials !== 'undefined') {
+            file = defaultPlatformMaterials.find(f => f.id === id);
+        }
+        if (!file && typeof lecturesData !== 'undefined') {
+            const l = lecturesData.find(f => f.fileId === id || f.id === id);
+            if (l) file = { ...l, isGoogleDrive: true };
+        }
+        if (!file && typeof presentationsData !== 'undefined') {
+            const p = presentationsData.find(f => f.fileId === id || f.id === id);
+            if (p) file = { ...p, isGoogleDrive: true };
+        }
+        if (!file && typeof practicalsData !== 'undefined') {
+            const pr = practicalsData.find(f => f.fileId === id || f.id === id);
+            if (pr) file = { ...pr, isGoogleDrive: true };
+        }
         if (!file) {
             showToast('Fayl topilmadi', 'danger');
             return;
@@ -2323,10 +2327,10 @@ window.copySnapshotAnalysis = function() {
     const stress = document.getElementById('snap-stress-pct')?.textContent || '14%';
     const time = document.getElementById('snapshot-timestamp')?.textContent || '';
 
-    const text = `📊 EMOTIONAL INTELLIGENCE (EI) DIAGNOSTIKA NATIJASI
+    const text = `📊 RAQAMLI EMOTIONAL INTELLEKT (REI) DIAGNOSTIKA NATIJASI
 Sana/Vaqt: ${time}
 --------------------------------------------------
-Umumiy EI Indeksi: ${score}/100 (A'lo)
+Umumiy REI Indeksi: ${score}/100 (A'lo)
 • Quvonch va Ijobiy kayfiyat: ${joy}
 • Kognitiv diqqat / Fokus: ${focus}
 • Psixo-emotsional barqarorlik: ${calm}
@@ -2501,7 +2505,7 @@ function initDetection() {
                         </div>
                     </div>
                     <div style="background:var(--bg-secondary); padding:1rem; border-radius:8px; border-left:4px solid var(--primary-500);">
-                        <b>💡 Raqamli EI bo'yicha tavsiya:</b>
+                        <b>💡 REI bo'yicha tavsiya:</b>
                         <p style="margin-top:0.35rem; font-size:0.9rem;">${recommendations[emotion] || "Emotsiyalaringizni doimiy kuzatib boring."}</p>
                     </div>
                 `;
@@ -3924,7 +3928,7 @@ window.renderReiSurvey = function() {
                     </div>
                     <div class="purpose-item">
                         <span class="p-icon">📝</span>
-                        <div><b>Javob berish tartibi:</b> Har bir fikr sizning raqamli muhitdagi odatiy xatti-harakatingizga qanchalik mos kelishini belgilang: <b>5 ball</b> — “har doim”, <b>4 ball</b> — “ko‘pincha”, <b>3 ball</b> — “ba’zan”, <b>2 ball</b> — “kamdan-kam”, <b>1 ball</b> — “hech qachon”.</div>
+                        <div><b>Javob berish tartibi:</b> Har bir fikr sizning raqamli muhitdagi odatiy xatti-harakatingizga qanchalik mos kelishini tanlang: “Har doim”, “Ko‘pincha”, “Ba’zan”, “Kamdan-kam” yoki “Hech qachon”.</div>
                     </div>
                 </div>
             </div>
@@ -3998,8 +4002,7 @@ window.renderReiSurvey = function() {
                                             class="rei-opt-btn ${currentAnswer === opt.value ? 'selected' : ''}" 
                                             onclick="selectReiAnswer(${q.id}, ${opt.value})"
                                             id="rei-opt-${q.id}-${opt.value}"
-                                            title="${opt.value} ball">
-                                            <span class="rei-opt-score">${opt.value} ball</span>
+                                            title="${opt.label}">
                                             <span class="rei-opt-label">${opt.label}</span>
                                         </button>
                                     `).join('')}
