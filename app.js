@@ -319,23 +319,38 @@ class FileStorageManager {
             this.isReady = true;
         }
 
-        // Agar foydalanuvchida hali fayllar bo'lmasa yoki to'liq bo'lmasa, defaultPlatformMaterials bilan to'ldiramiz
-        if (typeof defaultPlatformMaterials !== 'undefined') {
-            if (!this.memoryFiles || this.memoryFiles.length === 0) {
-                this.memoryFiles = JSON.parse(JSON.stringify(defaultPlatformMaterials));
-                this.saveToLocalStorage();
-            } else {
-                const existingTopics = new Set(this.memoryFiles.map(f => (f.topic || f.name || '').trim().toLowerCase()));
-                let added = false;
-                defaultPlatformMaterials.forEach(dm => {
-                    const cleanName = (dm.topic || dm.name || '').trim().toLowerCase();
-                    if (!existingTopics.has(cleanName)) {
-                        this.memoryFiles.push(JSON.parse(JSON.stringify(dm)));
-                        added = true;
+        // Barcha sun'iy mock materiallarni (mat-*, pres-*, prac-*, test-*) tozalash
+        this.memoryFiles = (this.memoryFiles || []).filter(f => 
+            !f.id?.startsWith('mat-') && 
+            !f.id?.startsWith('pres-') && 
+            !f.id?.startsWith('prac-') && 
+            !f.id?.startsWith('test-') && 
+            !(f.driveUrl && f.driveUrl.includes('1_rei_pedagogik_konfliktlar_'))
+        );
+        this.saveToLocalStorage();
+
+        if (this.db) {
+            try {
+                const tx = this.db.transaction([this.storeName], 'readwrite');
+                const store = tx.objectStore(this.storeName);
+                const req = store.openCursor();
+                req.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        const rec = cursor.value;
+                        if (
+                            rec.id?.startsWith('mat-') || 
+                            rec.id?.startsWith('pres-') || 
+                            rec.id?.startsWith('prac-') || 
+                            rec.id?.startsWith('test-') || 
+                            (rec.driveUrl && rec.driveUrl.includes('1_rei_pedagogik_konfliktlar_'))
+                        ) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
                     }
-                });
-                if (added) this.saveToLocalStorage();
-            }
+                };
+            } catch (e) {}
         }
 
         this.updateBadgesAndUI();
