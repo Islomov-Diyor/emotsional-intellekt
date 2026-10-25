@@ -319,13 +319,24 @@ class FileStorageManager {
             this.isReady = true;
         }
 
-        // Eski soxta mock linklarni tozalash
-        this.memoryFiles = (this.memoryFiles || []).filter(f => 
-            !(f.driveUrl && f.driveUrl.includes('1_rei_pedagogik_konfliktlar_'))
-        );
-
-        // data.js dagi rasmiy Google Disk materiallarini yuklash (barcha tashrif buyuruvchilar va ustoz uchun)
+        // 1. Dublikatlarni tozalash (foydalanuvchi oldin o'z kompyuterida kiritgan nusxalarini tozalash)
         if (typeof defaultPlatformMaterials !== 'undefined' && Array.isArray(defaultPlatformMaterials)) {
+            // Rasmiy materiallar doimo ustuvor
+            const officialDriveIds = new Set(defaultPlatformMaterials.map(m => m.driveId).filter(Boolean));
+            const officialSlotKeys = new Set(defaultPlatformMaterials.map(m => `${m.category}_${m.slotId}`));
+
+            // Eski gdrive_ va mock yozuvlarni tozalash (double bo'lmasligi uchun)
+            this.memoryFiles = (this.memoryFiles || []).filter(f => {
+                if (!f) return false;
+                if (f.driveUrl && f.driveUrl.includes('1_rei_pedagogik_konfliktlar_')) return false;
+                // Qo'lda kiritilgan eski gdrive_ nusxalarini olib tashlash
+                if (f.id && f.id.startsWith('gdrive_')) {
+                    return false;
+                }
+                return true;
+            });
+
+            // Rasmiy materiallarni to'liq xotiraga yuklash
             const memoryMap = new Map();
             this.memoryFiles.forEach(f => memoryMap.set(f.id, f));
 
@@ -334,13 +345,38 @@ class FileStorageManager {
                     this.memoryFiles.push({ ...m });
                 } else {
                     const existing = memoryMap.get(m.id);
-                    if (!existing.driveId || (existing.driveUrl && existing.driveUrl.includes('1_rei_pedagogik_konfliktlar_'))) {
-                        Object.assign(existing, m);
-                    }
+                    Object.assign(existing, m);
                 }
+            });
+
+            // Qat'iy deduplication: har bir slot uchun faqat 1 ta yagona kartochka qoladi
+            const seenSlots = new Set();
+            this.memoryFiles = this.memoryFiles.filter(f => {
+                const slotKey = `${f.category}_${f.slotId || f.id}`;
+                if (seenSlots.has(slotKey)) return false;
+                seenSlots.add(slotKey);
+                return true;
             });
         }
         this.saveToLocalStorage();
+
+        if (this.db) {
+            try {
+                const tx = this.db.transaction([this.storeName], 'readwrite');
+                const store = tx.objectStore(this.storeName);
+                const req = store.openCursor();
+                const validIds = new Set(this.memoryFiles.map(f => f.id));
+                req.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        if (!validIds.has(cursor.value.id) || cursor.value.id.startsWith('gdrive_')) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    }
+                };
+            } catch (e) {}
+        }
 
         this.updateBadgesAndUI();
     }
@@ -934,10 +970,10 @@ function initLectures() {
         const staticList = typeof lecturesData !== 'undefined' ? lecturesData : [];
         const memoryList = (fileManager ? fileManager.memoryFiles.filter(f => f.category === 'lecture') : []);
 
-        // Unique list by title
+        // Unique list by driveId, slotId, or title to prevent any duplicates
         const map = new Map();
-        memoryList.forEach(f => {
-            const key = (f.topic || f.name).toLowerCase().trim();
+        memoryList.forEach((f, idx) => {
+            const key = f.driveId || (f.slotId ? `slot_${f.slotId}` : null) || (f.topic || f.name).toLowerCase().trim();
             map.set(key, {
                 id: f.id,
                 title: f.topic || f.name,
@@ -947,12 +983,13 @@ function initLectures() {
                 downloadsCount: f.downloadsCount || 50,
                 plan: f.plan,
                 driveId: f.driveId,
+                slotId: f.slotId || (idx + 1),
                 file: f
             });
         });
 
         staticList.forEach((s, idx) => {
-            const key = (s.title || s.name || '').toLowerCase().trim();
+            const key = s.driveId || (s.id ? `slot_${s.id}` : null) || (s.title || s.name || '').toLowerCase().trim();
             if (!map.has(key)) {
                 map.set(key, {
                     id: s.fileId || `lec-${idx + 1}`,
@@ -962,7 +999,8 @@ function initLectures() {
                     type: s.type || 'docx',
                     downloadsCount: s.downloadsCount || 50,
                     plan: s.plan,
-                    driveId: s.driveId
+                    driveId: s.driveId,
+                    slotId: s.id || (idx + 1)
                 });
             }
         });
@@ -1140,8 +1178,8 @@ function initPresentations() {
         const memoryList = (fileManager ? fileManager.memoryFiles.filter(f => f.category === 'presentation') : []);
 
         const map = new Map();
-        memoryList.forEach(f => {
-            const key = (f.topic || f.name).toLowerCase().trim();
+        memoryList.forEach((f, idx) => {
+            const key = f.driveId || (f.slotId ? `slot_${f.slotId}` : null) || (f.topic || f.name).toLowerCase().trim();
             map.set(key, {
                 id: f.id,
                 title: f.topic || f.name,
@@ -1151,12 +1189,13 @@ function initPresentations() {
                 downloadsCount: f.downloadsCount || 60,
                 plan: f.plan,
                 driveId: f.driveId,
+                slotId: f.slotId || (idx + 1),
                 file: f
             });
         });
 
         staticList.forEach((p, idx) => {
-            const key = (p.title || p.name || '').toLowerCase().trim();
+            const key = p.driveId || (p.id ? `slot_${p.id}` : null) || (p.title || p.name || '').toLowerCase().trim();
             if (!map.has(key)) {
                 map.set(key, {
                     id: p.fileId || `pres-${idx + 1}`,
@@ -1166,7 +1205,8 @@ function initPresentations() {
                     type: p.type || 'pptx',
                     downloadsCount: p.downloadsCount || 60,
                     plan: p.plan,
-                    driveId: p.driveId
+                    driveId: p.driveId,
+                    slotId: p.id || (idx + 1)
                 });
             }
         });
@@ -1232,8 +1272,8 @@ function initPracticals() {
         const memoryList = (fileManager ? fileManager.memoryFiles.filter(f => f.category === 'practical') : []);
 
         const map = new Map();
-        memoryList.forEach(f => {
-            const key = (f.topic || f.name).toLowerCase().trim();
+        memoryList.forEach((f, idx) => {
+            const key = f.driveId || (f.slotId ? `slot_${f.slotId}` : null) || (f.topic || f.name).toLowerCase().trim();
             map.set(key, {
                 id: f.id,
                 title: f.topic || f.name,
@@ -1243,12 +1283,13 @@ function initPracticals() {
                 downloadsCount: f.downloadsCount || 48,
                 plan: f.plan,
                 driveId: f.driveId,
+                slotId: f.slotId || (idx + 1),
                 file: f
             });
         });
 
         staticList.forEach((p, idx) => {
-            const key = (p.title || p.name || '').toLowerCase().trim();
+            const key = p.driveId || (p.id ? `slot_${p.id}` : null) || (p.title || p.name || '').toLowerCase().trim();
             if (!map.has(key)) {
                 map.set(key, {
                     id: p.fileId || `prac-${idx + 1}`,
@@ -1258,7 +1299,8 @@ function initPracticals() {
                     type: p.type || 'docx',
                     downloadsCount: p.downloadsCount || 48,
                     plan: p.plan,
-                    driveId: p.driveId
+                    driveId: p.driveId,
+                    slotId: p.id || (idx + 1)
                 });
             }
         });
