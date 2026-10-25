@@ -8,8 +8,78 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=2">
-</head>
+    <link rel="stylesheet" href="styles.css?v=3.2">
+    <style>
+        /* Critical styles for REI launch banner & button to bypass browser cache */
+        .rei-launch-banner {
+            position: relative;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.12) 100%) !important;
+            border: 1.5px solid rgba(59, 130, 246, 0.35) !important;
+            border-radius: 16px !important;
+            padding: 2rem 2.25rem !important;
+            margin-bottom: 2.5rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 2rem !important;
+            box-shadow: 0 12px 36px rgba(59, 130, 246, 0.12) !important;
+        }
+        .btn-rei-launch-hero {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.75rem !important;
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+            color: #ffffff !important;
+            font-size: 1.15rem !important;
+            font-weight: 800 !important;
+            padding: 1.15rem 2.25rem !important;
+            border-radius: 14px !important;
+            border: none !important;
+            cursor: pointer !important;
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4) !important;
+            white-space: nowrap !important;
+            text-decoration: none !important;
+        }
+        .btn-rei-launch-hero:hover {
+            transform: translateY(-2px) scale(1.02) !important;
+            box-shadow: 0 12px 32px rgba(79, 70, 229, 0.5) !important;
+        }
+        .rei-modal.active {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 9999 !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .rei-options-grid {
+            display: grid !important;
+            grid-template-columns: repeat(5, 1fr) !important;
+            gap: 0.65rem !important;
+        }
+        .rei-opt-btn {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0.75rem 0.5rem !important;
+            border: 1.5px solid var(--border-color, #e2e8f0) !important;
+            border-radius: 10px !important;
+            background: var(--bg-card, #fff) !important;
+            cursor: pointer !important;
+        }
+        .rei-opt-btn.selected {
+            background: #2563eb !important;
+            border-color: #1d4ed8 !important;
+            color: #ffffff !important;
+        }
+    </style>
 <body>
     <!-- Splash / Loading Screen -->
     <div id="splash-screen" class="splash-screen">
@@ -551,59 +621,58 @@
             </div>
 
             <!-- Prominent Highlighted REI Ni Aniqlash Banner (8 ta simulyatsiya tepasida ajralib turuvchi) -->
-            <div class="rei-launch-banner glass-card" id="rei-launch-banner">
+            <div class="rei-launch-banner glass-card" id="rei-launch-banner" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.15) 100%); border: 2px solid rgba(59, 130, 246, 0.4); border-radius: 18px; padding: 2rem 2.25rem; margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; box-shadow: 0 12px 36px rgba(59, 130, 246, 0.15);">
                 <div class="rei-launch-glow"></div>
-                <div class="rei-launch-content">
-                    <div class="rei-launch-badge-row">
-                        <span class="rei-launch-badge">
-                            <span class="rei-pulse-dot"></span>
+                <div class="rei-launch-content" style="flex: 1; min-width: 300px;">
+                    <div class="rei-launch-badge-row" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <span class="rei-launch-badge" style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #2563eb; padding: 0.35rem 0.85rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase;">
+                            <span class="rei-pulse-dot" style="width: 8px; height: 8px; background: #2563eb; border-radius: 50%; display: inline-block;"></span>
                             <span>RASMIY METODIKA</span>
                         </span>
-                        <span class="rei-launch-chip">Integral REI Ko‘rsatkichi</span>
+                        <span class="rei-launch-chip" style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Integral REI Ko‘rsatkichi</span>
                     </div>
-                    <h2 class="rei-launch-title">Talabalarning raqamli emotsional intellektini aniqlash so‘rovnomasi</h2>
-                    <p class="rei-launch-desc">
+                    <h2 class="rei-launch-title" style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary, #0f172a); margin-bottom: 0.6rem; line-height: 1.3;">Talabalarning raqamli emotsional intellektini aniqlash so‘rovnomasi</h2>
+                    <p class="rei-launch-desc" style="font-size: 0.95rem; color: var(--text-secondary, #334155); line-height: 1.6; max-width: 840px; margin-bottom: 1.25rem;">
                         Talabalarning raqamli muhit va ijtimoiy tarmoqlarda o‘z emotsiyalarini anglash, boshqarish, boshqa insonlarning emotsiyalarini tushunish hamda konstruktiv raqamli munosabatlarni tashkil etish qobiliyatini 38 ta mezon orqali aniqlang va to'liq pedagogik tahlil oling.
                     </p>
-                    <div class="rei-launch-meta-grid">
-                        <div class="rei-meta-item">
-                            <span class="rei-meta-icon">📋</span>
+                    <div class="rei-launch-meta-grid" style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                        <div class="rei-meta-item" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.75); border: 1px solid rgba(0,0,0,0.08); padding: 0.55rem 0.85rem; border-radius: 10px;">
+                            <span class="rei-meta-icon" style="font-size: 1.3rem;">📋</span>
                             <div>
-                                <b>38 ta savol</b>
-                                <small>10 ta kompetensiya bloki</small>
+                                <b style="font-size: 0.85rem; display: block; color: #0f172a;">38 ta savol</b>
+                                <small style="font-size: 0.72rem; color: #64748b; display: block;">10 ta kompetensiya bloki</small>
                             </div>
                         </div>
-                        <div class="rei-meta-item">
-                            <span class="rei-meta-icon">⚖️</span>
+                        <div class="rei-meta-item" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.75); border: 1px solid rgba(0,0,0,0.08); padding: 0.55rem 0.85rem; border-radius: 10px;">
+                            <span class="rei-meta-icon" style="font-size: 1.3rem;">⚖️</span>
                             <div>
-                                <b>1 – 5 ballik shkala</b>
-                                <small>Hech qachon → Har doim</small>
+                                <b style="font-size: 0.85rem; display: block; color: #0f172a;">1 – 5 ballik shkala</b>
+                                <small style="font-size: 0.72rem; color: #64748b; display: block;">Hech qachon → Har doim</small>
                             </div>
                         </div>
-                        <div class="rei-meta-item">
-                            <span class="rei-meta-icon">📈</span>
+                        <div class="rei-meta-item" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.75); border: 1px solid rgba(0,0,0,0.08); padding: 0.55rem 0.85rem; border-radius: 10px;">
+                            <span class="rei-meta-icon" style="font-size: 1.3rem;">📈</span>
                             <div>
-                                <b>Integral REI (%)</b>
-                                <small>Yuqori, O‘rta, Past daraja</small>
+                                <b style="font-size: 0.85rem; display: block; color: #0f172a;">Integral REI (%)</b>
+                                <small style="font-size: 0.72rem; color: #64748b; display: block;">Yuqori, O‘rta, Past daraja</small>
                             </div>
                         </div>
-                        <div class="rei-meta-item">
-                            <span class="rei-meta-icon">⏱️</span>
+                        <div class="rei-meta-item" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.75); border: 1px solid rgba(0,0,0,0.08); padding: 0.55rem 0.85rem; border-radius: 10px;">
+                            <span class="rei-meta-icon" style="font-size: 1.3rem;">⏱️</span>
                             <div>
-                                <b>5–7 daqiqa</b>
-                                <small>Avtomatik hisoblash</small>
+                                <b style="font-size: 0.85rem; display: block; color: #0f172a;">5–7 daqiqa</b>
+                                <small style="font-size: 0.72rem; color: #64748b; display: block;">Avtomatik hisoblash</small>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="rei-launch-action">
-                    <button type="button" class="btn-rei-launch-hero" id="btn-open-rei-banner" onclick="openReiQuestionnaireModal()">
-                        <span class="rei-btn-pulse-ring"></span>
-                        <span class="rei-btn-icon">🧠</span>
-                        <span class="rei-btn-text">REI ni aniqlash</span>
-                        <span class="rei-btn-arrow">&rarr;</span>
+                <div class="rei-launch-action" style="display: flex; flex-direction: column; align-items: center; gap: 0.6rem; flex-shrink: 0;">
+                    <button type="button" class="btn btn-primary btn-rei-launch-hero" id="btn-open-rei-banner" onclick="openReiQuestionnaireModal()" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.85rem; background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important; color: #ffffff !important; font-size: 1.15rem !important; font-weight: 800 !important; padding: 1.15rem 2.25rem !important; border-radius: 14px !important; border: none !important; cursor: pointer !important; box-shadow: 0 10px 28px rgba(79, 70, 229, 0.45) !important; text-decoration: none !important; transition: all 0.25s ease;">
+                        <span class="rei-btn-icon" style="font-size: 1.45rem;">🧠</span>
+                        <span class="rei-btn-text" style="color: #ffffff !important;">REI ni aniqlash</span>
+                        <span class="rei-btn-arrow" style="font-size: 1.3rem; color: #ffffff !important;">&rarr;</span>
                     </button>
-                    <span class="rei-action-subtext">So‘rovnomani boshlash uchun bosing</span>
+                    <span class="rei-action-subtext" style="font-size: 0.78rem; color: var(--text-muted, #64748b); font-weight: 600;">So‘rovnomani boshlash uchun bosing</span>
                 </div>
             </div>
 
@@ -1083,7 +1152,7 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="data.js?v=2"></script>
-    <script src="app.js?v=2"></script>
+    <script src="data.js?v=3.2"></script>
+    <script src="app.js?v=3.2"></script>
 </body>
 </html>
