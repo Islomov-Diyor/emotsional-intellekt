@@ -327,24 +327,64 @@ const lecturesData = defaultPlatformMaterials.map((m, idx) => ({
     driveUrl: m.driveUrl
 }));
 
-// ==================== AMALIY TOPSHIRIQLAR ====================
-const practicalsData = defaultPlatformMaterials.map((m, idx) => ({
-    id: idx + 1,
-    fileId: `prac-${idx + 1}`,
-    title: `${idx + 1}-amaliy mashg'ulot: ${m.topic.replace(/^\d+[\-\.]\s*(mavzu:?\s*)?/i, '')}`,
-    name: `${idx + 1}-amaliy mashg'ulot topshirig'i.docx`,
-    excerpt: `Ushbu amaliy mashg'ulotda mavzuga oid pedagogik keyslar, nizoli vaziyatlar tahlili va amaliy topshiriqlar bajariladi.`,
-    color: "purple",
-    tag: "DOCX",
-    type: "docx",
-    size: 949964,
-    downloadsCount: 45 + (idx % 10),
-    plan: m.plan,
-    driveUrl: m.driveUrl
+// ==================== TAQDIMOTLAR (SLAYDLAR TO'PLAMI) ====================
+const presentationsData = defaultPlatformMaterials.map((m, idx) => {
+    const rawCleanTopic = (m.topic || '').replace(/^\d+[\-\.\s]*(mavzu[\.\:]?\s*)?/i, '').replace(/^[\.\:\-\s]+/, '');
+    return {
+        id: idx + 1,
+        fileId: `pres-${idx + 1}`,
+        title: `${idx + 1}-mavzu taqdimoti: ${rawCleanTopic}`,
+        name: `${idx + 1}-mavzu taqdimoti va ko'rgazmali slaydlari.pptx`,
+        excerpt: `Mavzu bo'yicha ko'rgazmali illyustratsiyalar, pedagogik infografikalar va interaktiv taqdimot slaydlari to'plami.`,
+        color: "orange",
+        tag: "PPTX",
+        type: "pptx",
+        category: "presentation",
+        size: 1450000 + (idx * 65000),
+        downloadsCount: 62 + (idx % 11),
+        plan: m.plan,
+        driveUrl: m.driveUrl
+    };
+});
+
+// Taqdimotlarni defaultPlatformMaterials ro'yxatiga qo'shish (Fayllar markazi uchun)
+const defaultPlatformPresentations = presentationsData.map((p) => ({
+    id: p.fileId,
+    name: p.name,
+    topic: p.title,
+    subject: "Fan: Raqamli emotsional intelekt",
+    category: "presentation",
+    type: "pptx",
+    size: p.size,
+    downloadsCount: p.downloadsCount,
+    uploadedAt: "2026-10-24T10:00:00.000Z",
+    isGoogleDrive: true,
+    driveUrl: p.driveUrl,
+    plan: p.plan
 }));
+defaultPlatformMaterials.push(...defaultPlatformPresentations);
+
+// ==================== AMALIY TOPSHIRIQLAR ====================
+const practicalsData = defaultPlatformMaterials.filter(m => m.category === 'lecture').map((m, idx) => {
+    const rawCleanTopic = (m.topic || '').replace(/^\d+[\-\.\s]*(mavzu[\.\:]?\s*)?/i, '').replace(/^[\.\:\-\s]+/, '');
+    return {
+        id: idx + 1,
+        fileId: `prac-${idx + 1}`,
+        title: `${idx + 1}-amaliy mashg'ulot: ${rawCleanTopic}`,
+        name: `${idx + 1}-amaliy mashg'ulot topshirig'i.docx`,
+        excerpt: `Ushbu amaliy mashg'ulotda mavzuga oid pedagogik keyslar, nizoli vaziyatlar tahlili va amaliy topshiriqlar bajariladi.`,
+        color: "purple",
+        tag: "DOCX",
+        type: "docx",
+        size: 949964,
+        downloadsCount: 45 + (idx % 10),
+        plan: m.plan,
+        driveUrl: m.driveUrl
+    };
+});
 
 // ==================== TESTLAR ====================
-const testsData = defaultPlatformMaterials.map((m, idx) => ({
+const testsData = defaultPlatformMaterials.filter(m => m.category === 'lecture').map((m, idx) => ({
     id: idx + 1,
     fileId: `test-${idx + 1}`,
     title: `${idx + 1}-mavzu bo'yicha test savollari`,

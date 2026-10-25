@@ -115,6 +115,11 @@
                 <span class="nav-text">Ma'ruzalar</span>
                 <span class="nav-badge" id="nav-lectures-badge">0</span>
             </li>
+            <li class="nav-item" data-page="presentations">
+                <span class="nav-icon">📽️</span>
+                <span class="nav-text">Taqdimotlar</span>
+                <span class="nav-badge" id="nav-presentations-badge">0</span>
+            </li>
             <li class="nav-item" data-page="practicals">
                 <span class="nav-icon">✍️</span>
                 <span class="nav-text">Amaliy topshiriqlar</span>
@@ -197,6 +202,12 @@
                     <div class="stat-label">Ma'ruzalar</div>
                     <div class="stat-bar"><div class="stat-bar-fill" id="home-lectures-bar" style="width: 0%"></div></div>
                 </div>
+                <div class="stat-card" data-page-link="presentations">
+                    <div class="stat-icon">📽️</div>
+                    <div class="stat-number" id="home-presentations-count" data-count="0">0</div>
+                    <div class="stat-label">Taqdimotlar</div>
+                    <div class="stat-bar"><div class="stat-bar-fill" id="home-presentations-bar" style="width: 0%"></div></div>
+                </div>
                 <div class="stat-card" data-page-link="practicals">
                     <div class="stat-icon">✍️</div>
                     <div class="stat-number" id="home-practicals-count" data-count="0">0</div>
@@ -278,6 +289,21 @@
                         <!-- Populated by JS -->
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- ==================== PRESENTATIONS PAGE ==================== -->
+        <section id="page-presentations" class="page">
+            <div class="page-header compact">
+                <h1 class="page-title">📽️ Taqdimotlar</h1>
+                <p class="page-description">Raqamli emotsional intellekt bo'yicha ko'rgazmali slaydlar va taqdimot fayllari (.pptx)</p>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="presentation-search" class="search-input" placeholder="Taqdimot qidirish...">
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="cards-grid" id="presentations-grid">
+                <!-- Populated by JS -->
             </div>
         </section>
 
@@ -812,6 +838,7 @@
                             <label for="upload-target-category">📌 Qaysi bo'limga tegishli:</label>
                             <select id="upload-target-category" class="select-input">
                                 <option value="lecture">📖 Ma'ruzalar matnlari</option>
+                                <option value="presentation">📽️ Taqdimotlar (.pptx)</option>
                                 <option value="practical">✍️ Amaliy topshiriqlar</option>
                                 <option value="test">📝 Test savollari</option>
                                 <option value="resource">📚 Qo'shimcha adabiyot va materiallar</option>
@@ -921,6 +948,7 @@
             <div class="file-hub-tabs">
                 <button class="file-tab active" data-file-cat="all">📂 Barcha materiallar (<span id="count-all-files">0</span>)</button>
                 <button class="file-tab" data-file-cat="lecture">📖 Ma'ruzalar (<span id="count-lecture-files">0</span>)</button>
+                <button class="file-tab" data-file-cat="presentation">📽️ Taqdimotlar (<span id="count-presentation-files">0</span>)</button>
                 <button class="file-tab" data-file-cat="practical">✍️ Amaliy topshiriqlar (<span id="count-practical-files">0</span>)</button>
                 <button class="file-tab" data-file-cat="test">📝 Test materiallari (<span id="count-test-files">0</span>)</button>
                 <button class="file-tab" data-file-cat="resource">📚 Qo'shimcha adabiyotlar (<span id="count-resource-files">0</span>)</button>

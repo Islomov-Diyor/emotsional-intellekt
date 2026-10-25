@@ -135,6 +135,57 @@ function generateDocumentCoverSvg(title = 'Mavzu taqdimoti', ext = 'docx', slotN
         return `<text x="75" y="${y}" font-family="'Times New Roman', Times, serif" font-size="15" fill="#1e293b" font-weight="500">${line.replace(/&/g, '&amp;')}</text>`;
     }).join('\n');
 
+    const extLower = (ext || 'docx').toLowerCase();
+
+    // If PPTX / PPT presentation, generate modern 16:9 presentation slide preview
+    if (extLower === 'pptx' || extLower === 'ppt') {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="100%" height="100%">
+        <defs>
+            <linearGradient id="slideGrad_${slotNumber}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#1e293b"/>
+                <stop offset="50%" stop-color="#0f172a"/>
+                <stop offset="100%" stop-color="#18181b"/>
+            </linearGradient>
+            <linearGradient id="orangeGlow_${slotNumber}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ea580c"/>
+                <stop offset="100%" stop-color="#f97316"/>
+            </linearGradient>
+            <filter id="slideShadow_${slotNumber}" x="-5%" y="-5%" width="110%" height="110%">
+                <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(0,0,0,0.3)"/>
+            </filter>
+        </defs>
+        <rect width="800" height="480" fill="#090d16"/>
+        <rect x="25" y="18" width="750" height="444" rx="12" fill="url(#slideGrad_${slotNumber})" stroke="#334155" stroke-width="2" filter="url(#slideShadow_${slotNumber})"/>
+        
+        <!-- Top slide accent bar -->
+        <rect x="25" y="18" width="750" height="8" rx="4" fill="url(#orangeGlow_${slotNumber})"/>
+        
+        <!-- PPT Badge -->
+        <rect x="55" y="44" width="125" height="30" rx="6" fill="#ea580c"/>
+        <text x="117" y="64" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">📽️ SLAYD PREVYU</text>
+        
+        <text x="55" y="112" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#ea580c" font-weight="700" letter-spacing="1">
+            RAQAMLI EMOTIONAL INTELLEKT • TAQDIMOT
+        </text>
+        <text x="55" y="152" font-family="'Segoe UI', Roboto, sans-serif" font-size="21" fill="#ffffff" font-weight="700">
+            ${cleanTitle.length > 52 ? cleanTitle.substring(0, 50) + '...' : cleanTitle}
+        </text>
+        
+        <line x1="55" y1="182" x2="745" y2="182" stroke="#334155" stroke-width="1.5"/>
+        
+        ${lines.slice(0, 5).map((l, i) => `
+            <circle cx="70" cy="${218 + (i * 38)}" r="5" fill="#f97316"/>
+            <text x="90" y="${223 + (i * 38)}" font-family="'Segoe UI', Roboto, sans-serif" font-size="15" fill="#e2e8f0" font-weight="500">${l.replace(/&/g, '&amp;')}</text>
+        `).join('')}
+        
+        <!-- Bottom bar with slide counter and author -->
+        <rect x="25" y="420" width="750" height="42" fill="#0f172a" rx="0"/>
+        <text x="55" y="446" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#94a3b8">Boshlang'ich ta'lim kafedrasi • Ko'rgazmali slaydlar</text>
+        <text x="740" y="446" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#f97316" font-weight="700" text-anchor="end">15 ta slayd</text>
+    </svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="100%" height="100%">
         <defs>
             <linearGradient id="paperGrad_${slotNumber}" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -576,6 +627,7 @@ class FileStorageManager {
     updateBadgesAndUI() {
         const total = this.memoryFiles.length;
         const lectures = this.memoryFiles.filter(f => f.category === 'lecture').length;
+        const presentations = this.memoryFiles.filter(f => f.category === 'presentation').length;
         const practicals = this.memoryFiles.filter(f => f.category === 'practical').length;
         const tests = this.memoryFiles.filter(f => f.category === 'test').length;
         const resources = this.memoryFiles.filter(f => f.category === 'resource').length;
@@ -585,14 +637,17 @@ class FileStorageManager {
         if (navBadge) navBadge.textContent = total;
 
         const navLecBadge = document.getElementById('nav-lectures-badge');
+        const navPresBadge = document.getElementById('nav-presentations-badge');
         const navPracBadge = document.getElementById('nav-practicals-badge');
         const navTestBadge = document.getElementById('nav-tests-badge');
 
-        const totalLecCount = (typeof lecturesData !== 'undefined' ? lecturesData.length : 0) + lectures;
-        const totalPracCount = (typeof practicalsData !== 'undefined' ? practicalsData.length : 0) + practicals;
-        const totalTestCount = (typeof testsData !== 'undefined' ? testsData.length : 0) + tests;
+        const totalLecCount = Math.max(typeof lecturesData !== 'undefined' ? lecturesData.length : 0, lectures);
+        const totalPresCount = Math.max(typeof presentationsData !== 'undefined' ? presentationsData.length : 0, presentations);
+        const totalPracCount = Math.max(typeof practicalsData !== 'undefined' ? practicalsData.length : 0, practicals);
+        const totalTestCount = Math.max(typeof testsData !== 'undefined' ? testsData.length : 0, tests);
 
         if (navLecBadge) navLecBadge.textContent = totalLecCount;
+        if (navPresBadge) navPresBadge.textContent = totalPresCount;
         if (navPracBadge) navPracBadge.textContent = totalPracCount;
         if (navTestBadge) navTestBadge.textContent = totalTestCount;
 
@@ -612,6 +667,11 @@ class FileStorageManager {
         if (homeLecCount) homeLecCount.textContent = totalLecCount;
         if (homeLecBar) homeLecBar.style.width = Math.min(100, totalLecCount * 10) + '%';
 
+        const homePresCount = document.getElementById('home-presentations-count');
+        const homePresBar = document.getElementById('home-presentations-bar');
+        if (homePresCount) homePresCount.textContent = totalPresCount;
+        if (homePresBar) homePresBar.style.width = Math.min(100, totalPresCount * 10) + '%';
+
         const homePracCount = document.getElementById('home-practicals-count');
         const homePracBar = document.getElementById('home-practicals-bar');
         if (homePracCount) homePracCount.textContent = totalPracCount;
@@ -629,11 +689,13 @@ class FileStorageManager {
         // Tab counts
         const cntAll = document.getElementById('count-all-files');
         const cntLec = document.getElementById('count-lecture-files');
+        const cntPres = document.getElementById('count-presentation-files');
         const cntPrac = document.getElementById('count-practical-files');
         const cntTest = document.getElementById('count-test-files');
         const cntRes = document.getElementById('count-resource-files');
         if (cntAll) cntAll.textContent = total;
         if (cntLec) cntLec.textContent = lectures;
+        if (cntPres) cntPres.textContent = presentations;
         if (cntPrac) cntPrac.textContent = practicals;
         if (cntTest) cntTest.textContent = tests;
         if (cntRes) cntRes.textContent = resources;
@@ -648,7 +710,7 @@ class FileStorageManager {
         if (window.renderFilesTable) {
             window.renderFilesTable();
         }
-        // Also update badges on lecture / practical cards if rendered
+        // Also update badges on lecture / presentation / practical cards if rendered
         if (window.updateCardFileBadges) {
             window.updateCardFileBadges();
         }
@@ -697,6 +759,7 @@ function initApp() {
 
     // 4. Initialize Data Components
     initLectures();
+    initPresentations();
     initPracticals();
     initTests();
     initSimulations();
@@ -933,6 +996,7 @@ function initLectures() {
 
     window.updateCardFileBadges = () => {
         if (window.renderLecturesList) window.renderLecturesList();
+        if (window.renderPresentationsList) window.renderPresentationsList();
         if (window.renderPracticalsList) window.renderPracticalsList();
         if (window.renderTestsList) window.renderTestsList();
     };
@@ -1042,6 +1106,98 @@ window.deleteAndRefreshLecture = async function(lectureId, fileId) {
         renderFilesTable();
     }
 };
+
+// =============================================================================
+// 4.5. TAQDIMOTLAR MODULI (SLAYDLAR VA PPTX FAYLLAR)
+// =============================================================================
+function initPresentations() {
+    const grid = document.getElementById('presentations-grid');
+    const searchInput = document.getElementById('presentation-search');
+    if (!grid) return;
+
+    window.renderPresentationsList = function() {
+        const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const staticList = typeof presentationsData !== 'undefined' ? presentationsData : [];
+        const memoryList = (fileManager ? fileManager.memoryFiles.filter(f => f.category === 'presentation') : []);
+
+        const map = new Map();
+        memoryList.forEach(f => {
+            const key = (f.topic || f.name).toLowerCase().trim();
+            map.set(key, {
+                id: f.id,
+                title: f.topic || f.name,
+                name: f.name,
+                size: f.size,
+                type: f.type || 'pptx',
+                downloadsCount: f.downloadsCount || 60,
+                plan: f.plan,
+                driveId: f.driveId,
+                file: f
+            });
+        });
+
+        staticList.forEach((p, idx) => {
+            const key = (p.title || p.name || '').toLowerCase().trim();
+            if (!map.has(key)) {
+                map.set(key, {
+                    id: p.fileId || `pres-${idx + 1}`,
+                    title: p.title,
+                    name: p.name || `${p.title}.pptx`,
+                    size: p.size || 1450000,
+                    type: p.type || 'pptx',
+                    downloadsCount: p.downloadsCount || 60,
+                    plan: p.plan,
+                    driveId: p.driveId
+                });
+            }
+        });
+
+        let combined = Array.from(map.values());
+        if (q) {
+            combined = combined.filter(p => p.title.toLowerCase().includes(q) || (p.name && p.name.toLowerCase().includes(q)));
+        }
+
+        grid.className = 'cards-grid file-slots-grid';
+        grid.innerHTML = '';
+        if (combined.length === 0) {
+            grid.innerHTML = `
+                <div class="empty-state-card" style="grid-column: 1 / -1; text-align:center; padding:3.5rem 1.5rem; background:var(--bg-secondary); border-radius:16px; border:2px dashed var(--border-color);">
+                    <div style="font-size:3.5rem; margin-bottom:1rem;">📽️</div>
+                    <h3 style="font-size:1.3rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">Hozircha taqdimotlar topilmadi</h3>
+                    <p style="color:var(--text-muted); font-size:0.9rem; max-width:480px; margin:0 auto 1.5rem;">
+                        Qidiruv so'zini o'zgartirib ko'ring yoki barcha taqdimotlarni ko'rish uchun qidiruvni tozalang.
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
+        combined.forEach((pres, idx) => {
+            const cardHtml = renderPlatformMaterialCardHtml({
+                id: pres.id,
+                topicTitle: pres.title,
+                fileName: pres.name || `${pres.title}.pptx`,
+                fileSize: pres.size || 1450000,
+                downloadsCount: pres.downloadsCount || (60 + (idx % 8)),
+                ext: pres.type || 'pptx',
+                categoryBadge: "Taqdimot",
+                subj: "FAN: RAQAMLI EMOTSIONAL INTELEKT",
+                plan: pres.plan,
+                driveId: pres.driveId,
+                slotNumber: idx + 1
+            });
+            grid.insertAdjacentHTML('beforeend', cardHtml);
+        });
+    };
+
+    window.renderPresentationsList();
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            window.renderPresentationsList();
+        });
+    }
+}
 
 // =============================================================================
 // 5. AMALIY TOPSHIRIQLAR MODULI
@@ -3148,7 +3304,8 @@ window.renderFileHubSlots = function() {
 
     const catLabels = {
         'all': "Barcha o'quv materiallari",
-        'lecture': "Ma'ruzalar materiallari va taqdimotlari",
+        'lecture': "Ma'ruzalar matnlari va adabiyotlar",
+        'presentation': "Taqdimotlar va ko'rgazmali slaydlar",
         'practical': "Amaliy topshiriqlar va ko'rsatmalar",
         'test': "Test materiallari va savollar to'plamlari",
         'resource': "Qo'shimcha adabiyotlar va qo'llanmalar"
@@ -3177,6 +3334,7 @@ window.renderFileHubSlots = function() {
             const topicTitle = attached.topic || attached.name || `Material ${idx + 1}`;
             const catBadgeNames = {
                 'lecture': "Ma'ruza",
+                'presentation': "Taqdimot",
                 'practical': "Amaliy ish",
                 'test': "Test",
                 'resource': "Adabiyot"
