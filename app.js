@@ -1462,94 +1462,144 @@ window.deleteAndRefreshPractical = async function(practicalId, fileId) {
 };
 
 // =============================================================================
-// 6. TESTLAR MODULI
+// =============================================================================
+// 6. TESTLAR MODULI (100-talik rasmiy fayllar va 15 ta onlayn test)
 // =============================================================================
 function initTests() {
     const grid = document.getElementById('tests-grid');
     if (!grid) return;
 
     window.renderTestsList = function() {
-        const staticList = typeof testsData !== 'undefined' ? testsData : [];
-        const memoryList = (fileManager ? fileManager.memoryFiles.filter(f => f.category === 'test') : []);
-
-        const map = new Map();
-        memoryList.forEach(f => {
-            const key = (f.topic || f.name).toLowerCase().trim();
-            map.set(key, {
-                id: f.id,
-                title: f.topic || f.name,
-                name: f.name,
-                size: f.size,
-                type: f.type || 'docx',
-                downloadsCount: f.downloadsCount || 52,
-                plan: f.plan,
-                driveId: f.driveId,
-                file: f
-            });
-        });
-
-        staticList.forEach((t, idx) => {
-            const key = (t.title || t.name || '').toLowerCase().trim();
-            if (!map.has(key)) {
-                map.set(key, {
-                    id: t.fileId || `test-${idx + 1}`,
-                    title: t.title,
-                    name: t.name || `${t.title}.docx`,
-                    size: t.size || 949964,
-                    type: t.type || 'docx',
-                    downloadsCount: t.downloadsCount || 52,
-                    plan: t.plan,
-                    driveId: t.driveId
-                });
+        // 1. Rasmiy yuklab olinadigan test fayllari (100 talik test va 100 ta savol)
+        const rawOfficialFiles = typeof officialTestFiles !== 'undefined' ? officialTestFiles : [
+            {
+                id: "test-100",
+                fileId: "test-100",
+                title: "BTK 100 talik yakuniy test savollari to'plami",
+                name: "BTK_100_test.docx",
+                size: 1250000,
+                type: "docx",
+                downloadsCount: 142,
+                driveId: "1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW"
+            },
+            {
+                id: "test-qa-100",
+                fileId: "test-qa-100",
+                title: "BTK 100 ta umumiy savollar va topshiriqlar to'plami",
+                name: "BTK_100_umumiy_savol.doc",
+                size: 1180000,
+                type: "doc",
+                downloadsCount: 128,
+                driveId: "1zxrXfxNT7VPMdKVyAq7cSGWfZPW3W6NJ"
             }
-        });
+        ];
 
-        const combined = Array.from(map.values()).sort((a, b) => {
-            const getOrder = (item) => {
-                if (item.id === 'test-100' || item.id === 100 || (item.name && item.name.includes('100_test'))) return 1;
-                if (item.id === 'test-qa-100' || item.id === 101 || (item.name && item.name.includes('100_umumiy'))) return 2;
-                const match = String(item.id).match(/test-(\d+)/);
-                if (match) return 10 + parseInt(match[1]);
-                return 100;
-            };
-            return getOrder(a) - getOrder(b);
-        });
+        // 2. 15 ta mavzu bo'yicha interaktiv onlayn testlar
+        const quizzes = typeof testsData !== 'undefined' ? testsData.filter(t => t.questions && t.questions.length > 0) : [];
 
-        grid.className = 'cards-grid file-slots-grid';
-        grid.innerHTML = '';
-        if (combined.length === 0) {
-            grid.innerHTML = `
-                <div class="empty-state-card" style="grid-column: 1 / -1; text-align:center; padding:3.5rem 1.5rem; background:var(--bg-secondary); border-radius:16px; border:2px dashed var(--border-color);">
-                    <div style="font-size:3.5rem; margin-bottom:1rem;">📝</div>
-                    <h3 style="font-size:1.3rem; font-weight:700; color:var(--text-primary); margin-bottom:0.5rem;">Hozircha testlar kiritilmagan</h3>
-                    <p style="color:var(--text-muted); font-size:0.9rem; max-width:480px; margin:0 auto 1.5rem;">
-                        ${AdminAuth.isAdmin() ? "Fayllar markazi orqali o'zingiz istalgan mavzudagi test savollari yoki variantlari faylini yuklashingiz mumkin." : "Ushbu bo'limga tez orada o'qituvchi tomonidan test savollari yuklanadi."}
-                    </p>
-                </div>
-            `;
-            return;
-        }
+        let html = '';
 
-        combined.forEach((t, idx) => {
-            const is100Test = t.id === 'test-100' || t.id === 100 || (t.name && t.name.includes('100_test'));
-            const is100QA = t.id === 'test-qa-100' || t.id === 101 || (t.name && t.name.includes('100_umumiy'));
-            const badge = is100Test ? "⭐ Asosiy Test" : (is100QA ? "⭐ 100 Savol" : "Mavzu Testi");
+        // Bo'lim 1: Rasmiy yakuniy test to'plamlari (Yuklab olish va Prevyu)
+        html += `
+            <div style="margin-bottom: 0.5rem;">
+                <h3 class="tests-section-title">
+                    <span>📑</span>
+                    <span>Rasmiy yakuniy test va savollar to'plami (Yuklab olish uchun)</span>
+                </h3>
+                <p style="color:var(--text-muted); font-size:0.9rem; margin-top:-0.5rem; margin-bottom:1.25rem;">
+                    Ushbu rasmiy to'plamlar Google Diskka to'liq yuklangan bo'lib, ularni to'g'ridan-to'g'ri yuklab olish yoki ko'rish mumkin.
+                </p>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.25rem; margin-bottom:2.75rem;">
+        `;
 
-            const cardHtml = renderPlatformMaterialCardHtml({
-                id: t.id,
-                topicTitle: t.title,
-                fileName: t.name || `${t.title}.docx`,
-                fileSize: t.size || (is100Test ? 1250000 : (is100QA ? 1180000 : 949964)),
-                downloadsCount: t.downloadsCount || (120 + (idx % 15)),
-                ext: t.type || (is100Test ? 'docx' : 'doc'),
-                categoryBadge: badge,
+        rawOfficialFiles.forEach((f, idx) => {
+            const card = renderPlatformMaterialCardHtml({
+                id: f.id,
+                topicTitle: f.title,
+                fileName: f.name || `${f.title}.docx`,
+                fileSize: f.size || 1200000,
+                downloadsCount: f.downloadsCount || 135,
+                ext: f.type || 'docx',
+                categoryBadge: idx === 0 ? "⭐ Asosiy Test" : "⭐ 100 Savol",
                 subj: "FAN: RAQAMLI EMOTSIONAL INTELEKT",
-                plan: t.plan,
-                driveId: t.driveId || "1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW",
+                driveId: f.driveId,
                 slotNumber: idx + 1
             });
-            grid.insertAdjacentHTML('beforeend', cardHtml);
+            html += card;
         });
+
+        html += `
+            </div>
+
+            <!-- Bo'lim 2: 15 ta mavzu bo'yicha interaktiv onlayn testlar -->
+            <div style="margin-bottom: 0.5rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                    <div>
+                        <h3 class="tests-section-title" style="margin-top:0;">
+                            <span>✍️</span>
+                            <span>Mavzular bo'yicha interaktiv onlayn testlar (1–15 mavzu)</span>
+                        </h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem; margin-top:-0.5rem; margin-bottom:1.25rem;">
+                            Talabalar mavzularni o'zlashtirish darajasini aniqlash uchun har bir mavzu bo'yicha onlayn test topshirishlari mumkin.
+                        </p>
+                    </div>
+                    <span style="background:linear-gradient(135deg, rgba(59,130,246,0.1), rgba(99,102,241,0.1)); border:1px solid rgba(59,130,246,0.3); color:var(--primary-600, #2563eb); font-size:0.85rem; font-weight:700; padding:0.35rem 0.85rem; border-radius:20px;">
+                        Jami: ${quizzes.length} ta onlayn test
+                    </span>
+                </div>
+            </div>
+            <div class="online-quizzes-grid">
+        `;
+
+        quizzes.forEach((quiz) => {
+            const savedScore = localStorage.getItem(`quiz_score_${quiz.id}`);
+            const hasScore = savedScore !== null;
+            const scoreNum = hasScore ? parseInt(savedScore, 10) : 0;
+            const isPassed = scoreNum >= (quiz.passingScore || 70);
+
+            let statusBadge = '';
+            if (hasScore) {
+                statusBadge = `
+                    <span class="online-quiz-status ${isPassed ? 'passed' : ''}">
+                        ${isPassed ? '✅ O\'tildi' : '⚠️ Qayta topshirish'} (${scoreNum}%)
+                    </span>
+                `;
+            } else {
+                statusBadge = `<span class="online-quiz-status">Topshirilmagan</span>`;
+            }
+
+            html += `
+                <div class="online-quiz-card">
+                    <div>
+                        <div class="online-quiz-header">
+                            <span class="online-quiz-badge">№ ${quiz.topicNumber || quiz.id}-mavzu</span>
+                            ${statusBadge}
+                        </div>
+                        <h4 class="online-quiz-title">${quiz.title}</h4>
+                        <p class="online-quiz-desc">${quiz.desc || 'Mavzu bo\'yicha bilimni mustahkamlovchi onlayn test savollari.'}</p>
+                    </div>
+
+                    <div>
+                        <div class="online-quiz-meta">
+                            <span>❓ <b>${quiz.questions.length}</b> ta savol</span>
+                            <span>⏱️ <b>${quiz.durationMinutes || 10}</b> daqiqa</span>
+                            <span>🎯 O'tish: <b>${quiz.passingScore || 70}%</b></span>
+                        </div>
+
+                        <button class="btn btn-primary btn-start-quiz" onclick="openTestModal(${quiz.id})">
+                            <span>${hasScore ? '🔄 Qayta topshirish' : '▶️ Onlayn testni topshirish'}</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+
+        grid.className = 'tests-container-layout';
+        grid.style.display = 'block';
+        grid.innerHTML = html;
     };
 
     window.renderTestsList();
@@ -1733,7 +1783,21 @@ window.finishQuiz = function() {
     currentQuizState.isFinished = true;
     if (typeof testsData !== 'undefined') {
         const test = testsData.find(t => t.id === currentQuizState.testId);
-        if (test) renderQuizModal(test);
+        if (test) {
+            let correctCount = 0;
+            const questions = test.questions || [];
+            questions.forEach((q, idx) => {
+                if (currentQuizState.userAnswers[idx] === q.correct) {
+                    correctCount++;
+                }
+            });
+            const percent = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
+            try {
+                localStorage.setItem(`quiz_score_${test.id}`, percent);
+            } catch (e) {}
+            renderQuizModal(test);
+            if (window.renderTestsList) window.renderTestsList();
+        }
     }
 };
 

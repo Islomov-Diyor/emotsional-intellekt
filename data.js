@@ -947,9 +947,10 @@ const practicalsData = defaultPlatformMaterials.filter(m => m.category === 'prac
 }));
 
 // ==================== TESTLAR ====================
-const testsData = [
+// ==================== RASMIY YUKLAB OLINADIGAN TEST FAYLLARI ====================
+const officialTestFiles = [
     {
-        id: 100,
+        id: "test-100",
         fileId: "test-100",
         title: "BTK 100 talik yakuniy test savollari to'plami",
         name: "BTK_100_test.docx",
@@ -958,7 +959,6 @@ const testsData = [
         type: "docx",
         size: 1250000,
         downloadsCount: 142,
-        questionsCount: 100,
         isGoogleDrive: true,
         driveId: "1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW",
         driveUrl: "https://drive.google.com/file/d/1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW/view?usp=sharing",
@@ -967,41 +967,941 @@ const testsData = [
         downloadUrl: "https://drive.google.com/uc?export=download&id=1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW"
     },
     {
-        id: 101,
+        id: "test-qa-100",
         fileId: "test-qa-100",
         title: "BTK 100 ta umumiy savollar va topshiriqlar to'plami",
         name: "BTK_100_umumiy_savol.doc",
-        desc: "Mavzular bo'yicha talabalar bilimini baholash va mustahkamlash uchun 100 ta umumiy savollar to'plami.",
+        desc: "Mavzular bo'yicha talabalar bilimini baholash va mustahkamlash uchun 100 ta umumiy nazariy va amaliy savollar to'plami.",
         tag: "DOC",
         type: "doc",
         size: 1180000,
         downloadsCount: 128,
-        questionsCount: 100,
         isGoogleDrive: true,
         driveId: "1zxrXfxNT7VPMdKVyAq7cSGWfZPW3W6NJ",
         driveUrl: "https://drive.google.com/file/d/1zxrXfxNT7VPMdKVyAq7cSGWfZPW3W6NJ/view?usp=sharing",
         viewUrl: "https://drive.google.com/file/d/1zxrXfxNT7VPMdKVyAq7cSGWfZPW3W6NJ/view?usp=sharing",
         previewUrl: "https://drive.google.com/file/d/1zxrXfxNT7VPMdKVyAq7cSGWfZPW3W6NJ/preview",
         downloadUrl: "https://drive.google.com/uc?export=download&id=1zxrXfxNT7VPMdKVyAq7cSGWfZPW3W6NJ"
+    }
+];
+
+// ==================== 15 TA MAVZU BO'YICHA INTERAKTIV ONLAYN TESTLAR ====================
+const testsData = [
+    {
+        id: 1,
+        topicNumber: 1,
+        title: "1-mavzu. Pedagogik konfliktologiya fanining predmeti, maqsad va vazifalari",
+        desc: "Pedagogik konfliktologiyaning nazariy asoslari, fan predmeti va ta'lim tizimidagi o'rni.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Pedagogik konfliktologiya fanining asosiy predmeti nima?",
+                options: [
+                    "Ta'lim-tarbiya jarayonidagi nizoli vaziyatlar, ularning sabablari va konstruktiv hal etish qonuniyatlari",
+                    "Faqat o'quvchilarning darsdagi intizomini nazorat qilish",
+                    "O'qituvchilarning oylik maoshlari va mehnat sharoitlarini o'rganish",
+                    "Maktab binosining moddiy-texnik holatini tekshirish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Konstruktiv konfliktning ta'lim jarayonidagi ijobiy funksiyasi nima?",
+                options: [
+                    "Guruh a'zolarini bir-biriga dushman qilish",
+                    "Muammoni aniqlash, yangi yechimlarni topish va shaxslararo munosabatlarni sifat jihatidan yangi bosqichga ko'tarish",
+                    "O'quvchilarni darsdan chetlashtirish",
+                    "Ta'lim jarayonini butunlay to'xtatish"
+                ],
+                correct: 1
+            },
+            {
+                q: "Konflikt so'zi lotincha qaysi so'zdan olingan va qanday ma'noni anglatadi?",
+                options: [
+                    "'Conflictus' — to'qnashuv, qarama-qarshilik",
+                    "'Concordia' — kelishuv, hamjihatlik",
+                    "'Collaboratio' — birgalikda ishlash",
+                    "'Cognitio' — bilish, idrok qilish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Pedagogik konfliktologiyaning asosiy vazifalaridan biri qaysi?",
+                options: [
+                    "Barcha nizolarni jazo choralari orqali bostirish",
+                    "Pedagogik jamoa va o'quvchilarda nizolarni tahlil qilish hamda konstruktiv hal etish kompetensiyasini shakllantirish",
+                    "Nizolar haqida hech kimga bildirmaslik",
+                    "O'quvchilarni bir-biri bilan muloqot qilishdan cheklash"
+                ],
+                correct: 1
+            },
+            {
+                q: "Destruktiv konflikt qanday oqibatga olib keladi?",
+                options: [
+                    "O'zaro tushunish va do'stlik mustahkamlanadi",
+                    "Munosabatlarning buzilishi, psixologik stress va ta'lim sifatining pasayishiga",
+                    "Yangi ijodiy g'oyalar paydo bo'lishiga",
+                    "O'quvchilarning o'zlashtirishi birdan ortishiga"
+                ],
+                correct: 1
+            }
+        ]
     },
-    ...defaultPlatformMaterials.filter(m => m.category === 'lecture').map((m, idx) => ({
-        id: idx + 1,
-        fileId: `test-${idx + 1}`,
-        title: `${idx + 1}-mavzu bo'yicha test savollari`,
-        name: `${idx + 1}-mavzu test savollari va variantlari.docx`,
-        desc: `${m.topic} mavzusi bo'yicha o'zlashtirish darajasini baholash uchun test materiallari (100 talik to'plamdan tegishli variant).`,
-        tag: "DOCX",
-        type: "docx",
-        size: 1250000,
-        downloadsCount: m.downloadsCount + 10,
-        questionsCount: 25,
-        isGoogleDrive: true,
-        driveId: "1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW",
-        driveUrl: "https://drive.google.com/file/d/1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW/view?usp=sharing",
-        viewUrl: "https://drive.google.com/file/d/1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW/view?usp=sharing",
-        previewUrl: "https://drive.google.com/file/d/1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW/preview",
-        downloadUrl: "https://drive.google.com/uc?export=download&id=1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW"
-    }))
+    {
+        id: 2,
+        topicNumber: 2,
+        title: "2-mavzu. Pedagogik muloqot va uning konfliktogen omillari",
+        desc: "Pedagogik muloqot uslublari, muloqot to'siqlari va nizolarni keltirib chiqaruvchi omillar.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "'Konfliktogen' tushunchasi nimani anglatadi?",
+                options: [
+                    "Nizoni bartaraf etuvchi tinchlantiruvchi so'zlar",
+                    "Nizoni keltirib chiqarishi yoki uni kuchaytirishi mumkin bo'lgan so'z, xatti-harakat yoki munosabat",
+                    "Dars jadvalini to'g'ri tuzish qoidasi",
+                    "O'quvchining a'lo baho olish istagi"
+                ],
+                correct: 1
+            },
+            {
+                q: "O'qituvchining qaysi muloqot uslubi eng ko'p konflikt keltirib chiqaradi?",
+                options: [
+                    "Demokratik uslub",
+                    "Avtoritar (yakka hukmronlikka asoslangan) uslub",
+                    "Hamkorlik uslubi",
+                    "Rag'batlantiruvchi uslub"
+                ],
+                correct: 1
+            },
+            {
+                q: "Noverbal konfliktogen omillarga nimalar kiradi?",
+                options: [
+                    "Istehzoli tabassum, qosh chimirish, kamsituvchi imo-ishoralar va sovuq qarash",
+                    "Muloyim ovoz ohangi va ochiq nigoh",
+                    "Dars mavzusini doskaga aniq yozish",
+                    "O'quvchining javobini sabr bilan tinglash"
+                ],
+                correct: 0
+            },
+            {
+                q: "Pedagogik muloqotda 'Men-xabar' texnikasi nima uchun xizmat qiladi?",
+                options: [
+                    "Qarshingizdagi shaxsni ayblamasdan, o'z his-tuyg'ularingiz va vaziyat haqidagi munosabatingizni yetkazish uchun",
+                    "O'zining ustunligini ko'rsatish uchun",
+                    "Boshqalarga buyruq berish uchun",
+                    "Baholarni kamaytirish uchun"
+                ],
+                correct: 0
+            },
+            {
+                q: "O'qituvchining o'quvchi shaxsiyatini kamsituvchi tanqidi qanday oqibatga olib keladi?",
+                options: [
+                    "O'quvchining fanga qiziqishi oshadi",
+                    "Emotsional to'siq, himoyalanish agressiyasi yoki ichki nizoga",
+                    "Sinfda tartib o'z-o'zidan yaxshilanadi",
+                    "O'quvchi o'qituvchini ko'proq hurmat qila boshlaydi"
+                ],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 3,
+        topicNumber: 3,
+        title: "3-mavzu. Pedagogik konfliktlarning psixologik tuzilishi va dinamikasi",
+        desc: "Konflikt tuzilishi, ishtirokchilar motivatsiyasi va nizo rivojlanish bosqichlari.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Konfliktning psixologik tuzilishi qanday elementlardan iborat?",
+                options: [
+                    "Faqat dars va tanaffus vaqti",
+                    "Konflikt ishtirokchilari, nizo predmeti, obyekti va ishtirokchilarning motivlari",
+                    "Maktab binosi va partalar",
+                    "Faqat sinf jurnali"
+                ],
+                correct: 1
+            },
+            {
+                q: "Konflikt dinamikasida 'Insident' nima?",
+                options: [
+                    "Konfliktning to'liq tugashi",
+                    "Yashirin ziddiyatni ochiq to'qnashuvga aylantiruvchi birinchi turtki yoki bahona",
+                    "O'zaro yarashish shartnomasi",
+                    "O'qituvchilar kengashi qarori"
+                ],
+                correct: 1
+            },
+            {
+                q: "Konfliktning eng yuqori, keskinlashgan nuqtasi nima deb ataladi?",
+                options: [
+                    "Eskalatsiya",
+                    "Kulminatsiya",
+                    "Tinchlanish",
+                    "Latent (yashirin) davr"
+                ],
+                correct: 1
+            },
+            {
+                q: "Konflikt dinamikasining ketma-ketligi to'g'ri ko'rsatilgan qatorni toping:",
+                options: [
+                    "Konfliktli vaziyat -> Insident -> Eskalatsiya -> Kulminatsiya -> Yechim",
+                    "Yechim -> Insident -> Kulminatsiya -> Tinchlanish",
+                    "Kulminatsiya -> Insident -> Yechim -> Sabab",
+                    "Insident -> Yechim -> Konfliktli vaziyat"
+                ],
+                correct: 0
+            },
+            {
+                q: "Nizoni boshqarishda 'latent (yashirin) davr' qanday ahamiyatga ega?",
+                options: [
+                    "Bu davrda hech narsa qilib bo'lmaydi",
+                    "Bu davrda ziddiyat yashirin bo'lib, o'z vaqtida aniqlansa, ochiq to'qnashuvning oldini olish eng oson bo'ladi",
+                    "Bu faqat jismoniy janjal vaqti",
+                    "Bu imtihon natijalari e'lon qilinadigan davr"
+                ],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 4,
+        topicNumber: 4,
+        title: "4-mavzu. O'quvchilarning yosh davrlari inqirozlari va pedagogik konfliktlar",
+        desc: "Yosh davrlari psixologiyasi, inqirozlar va nizolarning oldini olish.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "O'smirlik davri (11-15 yosh) inqirozining asosiy psixologik xususiyati nima?",
+                options: [
+                    "O'zini kattalardek his qilish (kattalik hissi) va mustaqillikka intilish",
+                    "Kattalarning har qanday buyrug'iga so'zsiz bo'ysunish",
+                    "Faqat o'yinchoqlar bilan o'ynash istagi",
+                    "Emotsional jihatdan butunlay befarqlik"
+                ],
+                correct: 0
+            },
+            {
+                q: "Boshlang'ich maktabga qabul qilingan o'quvchilarda qaysi yosh inqirozi kuzatiladi?",
+                options: [
+                    "3 yosh inqirozi",
+                    "7 yosh inqirozi (ijtimoiy mavqe va o'quv faoliyatiga moslashish)",
+                    "17 yosh inqirozi",
+                    "40 yosh inqirozi"
+                ],
+                correct: 1
+            },
+            {
+                q: "O'smirlik davrida tengdoshlar guruhining o'rni qanday bo'ladi?",
+                options: [
+                    "O'smir uchun tengdoshlarining fikri va guruhdagi nufuzi ota-ona va o'qituvchi fikridan ustunroq bo'lib qoladi",
+                    "Tengdoshlar hech qanday ahamiyatga ega bo'lmaydi",
+                    "O'smir faqat yolg'iz qolishni xohlaydi",
+                    "O'smir faqat maktab ma'muriyatiga intiladi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Xarakter aksentuatsiyasi nima?",
+                options: [
+                    "Xarakterdagi ayrim xususiyatlarning me'yordan ortiq darajada bo'rtib chiqishi va ma'lum vaziyatlarda nizoga moyillik",
+                    "Xotiraning to'liq yo'qolishi",
+                    "Aqliy zaiflik belgisi",
+                    "Faqat jismoniy charchoq"
+                ],
+                correct: 0
+            },
+            {
+                q: "O'smir bilan pedagogik konfliktni oldini olishda o'qituvchi qanday yo'l tutishi lozim?",
+                options: [
+                    "Sinf oldida uni masxara qilish va ovozini ko'tarish",
+                    "Uning shaxsiyatini hurmat qilish, fikrini eshitish va unga kattalardek mas'uliyat yuklash",
+                    "Har qanday fikriga qarshi chiqish",
+                    "Ota-onasiga doimiy shikoyat qilish"
+                ],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 5,
+        topicNumber: 5,
+        title: "5-mavzu. O'qituvchi va o'quvchi o'rtasidagi pedagogik konfliktlar",
+        desc: "O'qituvchi va o'quvchi o'rtasidagi ziddiyatlar sabablari va ularni bartaraf etish usullari.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "O'qituvchi va o'quvchi o'rtasidagi nizolarning eng ko'p uchraydigan sababi nima?",
+                options: [
+                    "Baholashdagi subyektivlik va adolatsizlik hissi hamda tushunmaslik",
+                    "Darsliklarning rangli bezatilgani",
+                    "Maktab qo'ng'irog'ining ovozi",
+                    "Sinf xonasining tozaligi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Dars jarayonida o'quvchi qoidani buzsa, o'qituvchining eng to'g'ri harakati qaysi?",
+                options: [
+                    "Darhol janjal ko'tarib, o'quvchini sinfdan haydab yuborish",
+                    "Hissiyotga berilmay, xotirjamlik bilan darsdan so'ng individual suhbatlashishni taklif qilish",
+                    "Butun sinf oldida o'quvchini haqorat qilish",
+                    "O'quvchining barcha baholarini tushirib yuborish"
+                ],
+                correct: 1
+            },
+            {
+                q: "O'qituvchining emotsional intellekti (REI) o'quvchi bilan munosabatda qanday namoyon bo'ladi?",
+                options: [
+                    "O'z g'azabi va xavotirini nazorat qila olish va o'quvchining holatini tushunish (empatiya)",
+                    "Har qanday qiyin vaziyatda jilmayib turish",
+                    "O'quvchilar bilan umuman gaplashmaslik",
+                    "Faqat qattiqqo'llik bilan tartib o'rnatish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Faol tinglash (active listening) pedagogik konfliktda qanday natija beradi?",
+                options: [
+                    "O'quvchi o'zining eshitilganini va tushunilganini his qilib, himoyaviy agressiyasini pasaytiradi",
+                    "O'quvchining o'zlashtirishi pasayadi",
+                    "Vaqt behuda ketadi",
+                    "O'qituvchining obro'si tushadi"
+                ],
+                correct: 0
+            },
+            {
+                q: "O'quvchining darsdagi sabotaji yoki qarshilik ko'rsatishi ko'pincha nima bilan bog'liq?",
+                options: [
+                    "Diqqat markazida bo'lish istagi, tushunilmaganlik yoki o'zini noqulay his qilish",
+                    "Faqat biologik ochlik",
+                    "Maktab formasining yoqmasligi",
+                    "Dars soatlarining kamligi"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 6,
+        topicNumber: 6,
+        title: "6-mavzu. O'quvchi-o'quvchi munosabatlaridagi ziddiyatlar va bulling",
+        desc: "Sinfdagi tengdoshlararo nizolar, bulling turlari va profilaktikasi.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Bulling nima?",
+                options: [
+                    "Tengdoshlar o'rtasida bir martalik o'zaro hazil",
+                    "Bir yoki bir guruh o'quvchilar tomonidan boshqa bir o'quvchiga nisbatan davomiy, qasddan qilingan psixologik yoki jismoniy tazyiq",
+                    "Darsdagi sog'lom bahs-munozara",
+                    "Sport musobaqasidagi raqobat"
+                ],
+                correct: 1
+            },
+            {
+                q: "Bulling tizimida qanday asosiy rollar mavjud?",
+                options: [
+                    "Agressor (tashabbuskor), qurbon (jabrlanuvchi) va kuzatuvchilar (guvohlar)",
+                    "O'qituvchi, direktor va qorovul",
+                    "Sinf rahbari va kutubxonachi",
+                    "Faqat bitta o'quvchi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Kiberbulling qanday amalga oshiriladi?",
+                options: [
+                    "Faqat partada o'tirganda",
+                    "Ijtimoiy tarmoqlar, messenjerlar va internet orqali haqorat qilish, tuhmat tarqatish va shaxsiy ma'lumotlarni fosh etish",
+                    "Kutubxonada kitob o'qish orqali",
+                    "Dars jadvalini o'zgartirish orqali"
+                ],
+                correct: 1
+            },
+            {
+                q: "Bulling holatida 'guvohlar' (kuzatuvchilar) qanday rol o'ynaydi?",
+                options: [
+                    "Ularning reaktsiyasi (kulishi yoki jim turishi) agressorni yanada rag'batlantiradi; ularning qarshiligi esa bullingni to'xtatishi mumkin",
+                    "Ular hech qanday ta'sirga ega emas",
+                    "Guvohlar har doim o'qituvchini himoya qiladi",
+                    "Guvohlar qurbonning baholarini oshiradi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Maktabda bulling aniqlanganda pedagogning birinchi galdagi vazifasi nima?",
+                options: [
+                    "'O'zlari kelishib oladi' deb e'tiborsiz qoldirish",
+                    "Zo'ravonlikni zudlik bilan to'xtatish, jabrlanuvchiga xavfsizlik ta'minlash va tizimli choralar ko'rish",
+                    "Faqat qurbonni ayblash",
+                    "Barcha sinfni jismoniy jazolash"
+                ],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 7,
+        topicNumber: 7,
+        title: "7-mavzu. O'qituvchi va ota-onalar hamkorligidagi konfliktlar",
+        desc: "Oila va maktab muloqoti, ota-onalar bilan samarali muloqot va nizoli holatlar.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "O'qituvchi va ota-ona o'rtasidagi nizoning eng ko'p uchraydigan sababi nima?",
+                options: [
+                    "O'quvchining bahosi va xulq-atvoriga turlicha baho berish, o'zaro ayblovlar",
+                    "Maktab sport zali o'lchami",
+                    "Ob-havoning o'zgarishi",
+                    "Ota-onalar yig'ilishining vaqti"
+                ],
+                correct: 0
+            },
+            {
+                q: "Ota-onalar bilan individual suhbatda qaysi usul samarali hisoblanadi?",
+                options: [
+                    "Faqat bolaning kamchiliklarini ro'yxat qilib aytib berish",
+                    "'Sendvich' qoidasi: avval bolaning ijobiy yutuqlarini aytish, keyin muammoni muhokama qilish va ijobiy xulosa bilan yakunlash",
+                    "Ota-onaning gapini bo'lib, o'z aybini isbotlash",
+                    "Suhbatni 2 daqiqada tugatish"
+                ],
+                correct: 1
+            },
+            {
+                q: "Tajovuzkor yoki g'azablangan ota-ona bilan muloqotda o'qituvchi nima qilishi kerak?",
+                options: [
+                    "O'zaro qichqirish va tahdid qilish",
+                    "Xotirjamlikni saqlash, ota-onaga his-tuyg'ularini to'kib solishga imkon berish, so'ng konstruktiv yechimga o'tish",
+                    "Xonadan qochib ketish",
+                    "Darhol sudga berish bilan qo'rqitish"
+                ],
+                correct: 1
+            },
+            {
+                q: "Ota-onani ta'lim jarayoniga jalb qilishda eng muhim tamoyil nima?",
+                options: [
+                    "Hamkorlik, o'zaro ishonch va bolaning manfaati ustuvorligi",
+                    "Ota-onani faqat moddiy homiy sifatida ko'rish",
+                    "Maktab ishlariga ota-onani mutlaqo aralashtirmaslik",
+                    "Ota-onalar ustidan doimiy nazorat o'rnatish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Oila va maktab munosabatlarida 'uchburchak' qoidasi kimlarni qamrab oladi?",
+                options: [
+                    "O'qituvchi — O'quvchi — Ota-ona",
+                    "Direktor — Zavuch — Kotiba",
+                    "Sinf rahbari — Psixolog — Hamshira",
+                    "Maktab — Mahalla — Ichki ishlar"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 8,
+        topicNumber: 8,
+        title: "8-mavzu. Pedagogik konfliktlarni diagnostika qilish metodlari",
+        desc: "Konfliktlarni o'rganish, Tomas-Kilmann testi va sotsiometriya usullari.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Tomas-Kilmann testi bo'yicha konfliktdagi xulq-atvorning nechta strategiyasi farqlanadi?",
+                options: [
+                    "2 ta",
+                    "5 ta (Raqobat, Moslashish, Qochish, Murosa, Hamkorlik)",
+                    "10 ta",
+                    "1 ta"
+                ],
+                correct: 1
+            },
+            {
+                q: "Tomas modeli bo'yicha eng samarali va uzoq muddatli yechim beruvchi strategiya qaysi?",
+                options: [
+                    "Hamkorlik (Har ikki tomonning manfaatlari maksimal hisobga olinadi)",
+                    "Qochish (Nizoni e'tiborsiz qoldirish)",
+                    "Raqobat (O'z foydasiga zo'rlik bilan erishish)",
+                    "Moslashish (O'z manfaatidan butunlay voz kechish)"
+                ],
+                correct: 0
+            },
+            {
+                q: "Sinfdagi o'zaro munosabatlar va liderlarni aniqlash uchun qaysi metodika qo'llaniladi?",
+                options: [
+                    "Sotsiometriya (J.Moreno metodikasi)",
+                    "IQ testi",
+                    "Tez yozish testi",
+                    "EKG tekshiruvi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Konflikt monitoringi nima uchun zarur?",
+                options: [
+                    "Yashirin nizoli vaziyatlarni barvaqt aniqlash va o'z vaqtida chora ko'rish uchun",
+                    "O'quvchilarga yomon baho qo'yish uchun",
+                    "Sinf xonasini ta'mirlash uchun",
+                    "Jurnallarni tekshirish uchun"
+                ],
+                correct: 0
+            },
+            {
+                q: "Tomas metodikasida 'Murosa' (kompromiss) strategiyasi nima bilan tavsiflanadi?",
+                options: [
+                    "Har ikki tomon ma'lum darajada o'z talablaridan yon berib, o'rta yechimga kelishi",
+                    "Bir tomonning to'liq yengilishi",
+                    "Jang qilish",
+                    "Bir-birini mensimaslik"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 9,
+        topicNumber: 9,
+        title: "9-mavzu. Pedagogik nizolarni konstruktiv hal etish texnologiyalari",
+        desc: "Muzokaralar olib borish, 'Win-Win' tamoyili va konstruktiv yechim qadamlari.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Konstruktiv yechimning destruktiv yechimdan asosiy farqi nima?",
+                options: [
+                    "Konstruktiv yechimda muammo ildizi hal qilinadi va munosabatlar saqlab qolinadi",
+                    "Konstruktiv yechim har doim jazo bilan tugaydi",
+                    "Konstruktiv yechimda hamma yig'laydi",
+                    "Hech qanday farq yo'q"
+                ],
+                correct: 0
+            },
+            {
+                q: "Pedagogik muzokaralar olib borishda birinchi qadam nima bo'lishi kerak?",
+                options: [
+                    "Hissiyotlarni pasaytirish va tomonlarga xotirjam gapirish imkonini berish",
+                    "Darhol aybdorni jazolash",
+                    "Qistov bilan kechirim so'ratish",
+                    "Tomonlarni bir-biridan ajratib qamab qo'yish"
+                ],
+                correct: 0
+            },
+            {
+                q: "'Miya hujumi' (Brainstorming) metodi nizoni hal qilishda qanday qo'llaniladi?",
+                options: [
+                    "Tomonlar birgalikda muammodan chiqishning barcha g'oyalarini taklif qilib, eng ma'qulini tanlaydilar",
+                    "Bir-birining kamchiliklarini aytish",
+                    "Bir-biriga qattiq baqirish",
+                    "Dars o'tmaslik"
+                ],
+                correct: 0
+            },
+            {
+                q: "'Yutqazmagan tomon' (Win-Win) tamoyili nimani anglatadi?",
+                options: [
+                    "Har ikki tomon o'zini g'olib deb hisoblaydigan va qoniqish hosil qiladigan yechim",
+                    "Bir tomon yutib, ikkinchi tomon mag'lub bo'lishi",
+                    "Har ikki tomonning yutqazishi",
+                    "O'yinda durang bo'lishi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Qaysi xatti-harakat nizoni konstruktiv hal qilishga xalal beradi?",
+                options: [
+                    "O'tmishdagi eski xatolarni eslash va shaxsiyatga tegish",
+                    "Faqat ayni damdagi muammo haqida gapirish",
+                    "Tinglashga intilish",
+                    "Hamkorlikka tayyorlik"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 10,
+        topicNumber: 10,
+        title: "10-mavzu. Ta'lim muassasalarida mediatorlik (vositachilik) xizmati",
+        desc: "Maktab mediatsiyasi, mediatorlik prinsiplari va tengdoshlar mediatsiyasi.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Maktab mediatsiyasi nima?",
+                options: [
+                    "Nizolashayotgan tomonlarga xolis, neytral uchinchi tomon (mediator) yordamida o'zaro maqbul kelishuvga erishish jarayoni",
+                    "O'quvchilarni jazolash hay'ati",
+                    "Direktor xonasidagi so'roq",
+                    "Tibbiy ko'rik"
+                ],
+                correct: 0
+            },
+            {
+                q: "Mediatsiyaning asosiy tamoyillari to'g'ri ko'rsatilgan qatorni toping:",
+                options: [
+                    "Ixtiyoriylik, xolislik (neytrallik), maxfiylik va tomonlarning teng huquqliligi",
+                    "Majburiylik, oshkoralik, jazoga tortish",
+                    "Tezlik, baholash, qoralash",
+                    "Ayblash, e'lon qilish, chiqarib yuborish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Maktab mediatorining vazifasiga nima kirmaydi?",
+                options: [
+                    "Tomonlarning kim haqligini hal qilib, hukm yoki jazo chiqarish",
+                    "Tomonlarning muloqotini tashkil qilish",
+                    "Maxfiylikni saqlash",
+                    "Tomonlarga o'z yechimlarini topishga ko'maklashish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Tengdoshlar mediatsiyasi (Peer mediation) nima?",
+                options: [
+                    "Maxsus o'qitilgan o'quvchilarning o'z tengdoshlari o'rtasidagi nizolarni hal qilishda vositachilik qilishi",
+                    "Tengdoshlarning birgalikda mushtlashishi",
+                    "Barcha o'quvchilarga bir xil baho qo'yish",
+                    "Maktabdan tashqari to'garak"
+                ],
+                correct: 0
+            },
+            {
+                q: "Yarashuv shartnomasi qachon tuziladi?",
+                options: [
+                    "Tomonlar o'zaro kelishuvga erishib, kelajakdagi majburiyatlarni ixtiyoriy qabul qilganlarida",
+                    "O'qituvchi majburlab qo'l qo'ydirganda",
+                    "O'quvchi maktabdan ketayotganda",
+                    "Dars boshlanishidan oldin"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 11,
+        topicNumber: 11,
+        title: "11-mavzu. Oila va maktab hamkorligida pedagogik nizolarni bartaraf etish",
+        desc: "Oila muhiti, disfunksional tarbiya va nizolarni bartaraf etishda integratsiyalashgan yondashuv.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Oila va maktab hamkorligining muvaffaqiyati nimaga bog'liq?",
+                options: [
+                    "Maktab va ota-onaning bolaga nisbatan yagona, kelishilgan talablar tizimini qo'yishiga",
+                    "Ota-onaning maktabga umuman kelmasligiga",
+                    "Maktabning ota-onaga doimiy jarima solishiga",
+                    "O'quvchining telefon ishlatmasligiga"
+                ],
+                correct: 0
+            },
+            {
+                q: "Oila tarbiyasidagi qaysi uslub bolada nizo keltirib chiqaruvchi xulq-atvorni shakllantiradi?",
+                options: [
+                    "Haddan tashqari qattiqqo'llik (gipernazorat) yoki butunlay e'tiborsizlik (giponazorat)",
+                    "Mehr-muhabbat va oqilona talabchanlik",
+                    "O'zaro do'stona muloqot",
+                    "Kitob o'qishga rag'batlantirish"
+                ],
+                correct: 0
+            },
+            {
+                q: "O'quvchining maktabdagi xulq-atvori buzilishining asosiy sabablaridan biri nima bo'lishi mumkin?",
+                options: [
+                    "Oiladagi ichki tanglik, nizolar va mehr yetishmasligi",
+                    "Partaning balandligi",
+                    "Qalamning rangi",
+                    "Darslikning og'irligi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Ota-onalar bilan ishlashda 'profilaktik yondashuv' nima?",
+                options: [
+                    "Nizo kelib chiqishini kutmasdan, muntazam psixologik-pedagogik ma'rifat va maslahatlar berib borish",
+                    "Faqat voqea sodir bo'lgandan keyin chaqirish",
+                    "Har kuni ota-onalarni sinovdan o'tkazish",
+                    "Maktab eshigini yopib qo'yish"
+                ],
+                correct: 0
+            },
+            {
+                q: "O'quvchi xatti-harakatidagi keskin salbiy o'zgarish payqalganda o'qituvchi kim bilan hamkorlik qilishi kerak?",
+                options: [
+                    "Maktab psixologi va ota-onasi bilan birgalikda",
+                    "Hech kim bilan, sir saqlashi kerak",
+                    "Faqat sinfdagi boshqa bolalar bilan",
+                    "Mahalla noziri orqali jazolash kerak"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 12,
+        topicNumber: 12,
+        title: "12-mavzu. Sinf jamoasida sog'lom psixologik iqlimni shakllantirish",
+        desc: "Psixologik iqlim diagnostikasi, jamoani jipslashtirish va emotsional yuqumlilik.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Sinfdagi sog'lom psixologik iqlimning asosiy belgisi nima?",
+                options: [
+                    "O'zaro ishonch, samimiylik, qo'llab-quvvatlash va xavfsizlik hissi",
+                    "Hamma jim o'tirishi va gaplashmasligi",
+                    "Hamma bir-biridan qo'rqishi",
+                    "Doimiy nazorat ishlari"
+                ],
+                correct: 0
+            },
+            {
+                q: "Qaysi omil sinf iqlimiga salbiy ta'sir ko'rsatadi?",
+                options: [
+                    "O'quvchilarni 'yaxshi' va 'yomon' guruhlarga ajratish, kamsitish",
+                    "Jamoaviy ijodiy ishlar",
+                    "Birgalikdagi sayohatlar",
+                    "Bayram tadbirlari"
+                ],
+                correct: 0
+            },
+            {
+                q: "'Timbilding' (jamoa shakllantirish) mashg'ulotlarining maqsadi nima?",
+                options: [
+                    "O'quvchilarni jipslashtirish, o'zaro ishonchni oshirish va hamkorlikda ishlashni o'rgatish",
+                    "Kim kuchli ekanini aniqlash",
+                    "Vaqtni o'tkazish",
+                    "Dars qoldirish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Sinfda chetlatilgan (izolyatsiyadagi) o'quvchini jamoaga qo'shish uchun sinf rahbari nima qilishi kerak?",
+                options: [
+                    "Unga jamoaviy loyihalarda muhim va qiziqarli vazifa yuklash, uning kuchli tomonlarini sinfga ko'rsatish",
+                    "Uni doimiy tanqid qilish",
+                    "Alohida partaga o'tqazib qo'yish",
+                    "E'tibor bermaslik"
+                ],
+                correct: 0
+            },
+            {
+                q: "Emotsional yuqumlilik (emotional contagion) sinfda qanday namoyon bo'ladi?",
+                options: [
+                    "O'qituvchi yoki liderning xotirjam yoki asabiy kayfiyati butun sinfga tez tarqaladi",
+                    "Gripp kasalligining yuqishi",
+                    "Baholarning bir xil bo'lishi",
+                    "Darsning kech boshlanishi"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 13,
+        topicNumber: 13,
+        title: "13-mavzu. O'qituvchining kasbiy kompetensiyasi va konfliktologik madaniyati",
+        desc: "O'qituvchining emotsional barqarorligi, stressni boshqarish va kasbiy yonish profilaktikasi.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "O'qituvchining konfliktologik madaniyati nima?",
+                options: [
+                    "Nizolarning oldini olish, ularni konstruktiv boshqarish va nizoli vaziyatlarda o'zini idora qila olish bilimi va mahorati",
+                    "Faqat nizolashish qobiliyati",
+                    "O'quvchilarga qattiq jazo bera olish",
+                    "Hech qachon dars qoldirmaslik"
+                ],
+                correct: 0
+            },
+            {
+                q: "Pedagoglarda 'Emotsional yonish' (Emotional burnout) sindromining belgisi nima?",
+                options: [
+                    "Doimiy charchoq, befarqlik, asabiylik va kasbga qiziqishning yo'qolishi",
+                    "Darsga katta ishtiyoq bilan kelish",
+                    "Yangi metodikalarni faol qo'llash",
+                    "Sog'lom uyqu"
+                ],
+                correct: 0
+            },
+            {
+                q: "Stress vaziyatida o'qituvchi o'zini qanday boshqarishi mumkin?",
+                options: [
+                    "Nafas mashqlari, pauza (to'xtab fikrlash), o'z fikrlarini ijobiy yo'naltirish",
+                    "O'quvchilarga baqirish",
+                    "Darsni tashlab chiqib ketish",
+                    "Boshqalarni ayblash"
+                ],
+                correct: 0
+            },
+            {
+                q: "Konfliktologik kompetentlikka nimalar kiradi?",
+                options: [
+                    "Vaziyatni tahlil qilish, hissiyotlarni boshqarish, faol tinglash va moslashuvchanlik",
+                    "Faqat o'z fikrida qat'iy turish",
+                    "Tomonlarni tinglamaslik",
+                    "Buyruq ohangida gapirish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Refleksiya nima?",
+                options: [
+                    "O'z xatti-harakatlari, fikrlari va hissiyotlarini tahlil qilish hamda baholash qobiliyati",
+                    "Ko'zguga qarash",
+                    "Faqat dars jadvalini yodlash",
+                    "Ovozni balandlatish"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 14,
+        topicNumber: 14,
+        title: "14-mavzu. Oiladagi va jamoadagi konfliktlar va ularning yechimlari",
+        desc: "Oila a'zolari o'rtasidagi nizolar, jamoaviy nizolar va psixologik qo'llab-quvvatlash.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Oila a'zolari o'rtasidagi destruktiv nizo bolaga qanday ta'sir qiladi?",
+                options: [
+                    "Bola xavfsizlik hissini yo'qotadi, xavotir va agressiya darajasi oshadi, o'qishi yomonlashadi",
+                    "Bolaning ijodiy qobiliyati oshadi",
+                    "Bolaga mutlaqo ta'sir qilmaydi",
+                    "Bola mustaqil bo'lib qoladi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Jamoadagi vertikal konflikt qanday nizo?",
+                options: [
+                    "Rahbar va xodim (yoki o'qituvchi va o'quvchi) o'rtasidagi ierarxik nizo",
+                    "Bir xil lavozimdagi xodimlar o'rtasidagi nizo",
+                    "Sinfdoshlar o'rtasidagi nizo",
+                    "Qo'shnilar o'rtasidagi nizo"
+                ],
+                correct: 0
+            },
+            {
+                q: "Oila a'zolari o'rtasidagi sog'lom muloqotning asosi nima?",
+                options: [
+                    "O'zaro hurmat, bir-birini qadrlash va his-tuyg'ularni ochiq muhokama qila olish",
+                    "Faqat bitta shaxsning hukmronligi",
+                    "Moddiy boylik miqdori",
+                    "Hech narsani muhokama qilmaslik"
+                ],
+                correct: 0
+            },
+            {
+                q: "Jamoada norasmiy lider bilan konflikt kelib chiqsa, rahbar nima qilishi maqsadga muvofiq?",
+                options: [
+                    "Norasmiy lider bilan muloqot o'rnatish, uning ta'sir kuchini umumiy foydali maqsadlarga yo'naltirish",
+                    "Uni jamoadan darhol haydash",
+                    "Uning ustidan kulish",
+                    "E'tiborsiz qoldirish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Nizolarni hal etishda kompromiss qanday vaziyatda qo'llaniladi?",
+                options: [
+                    "Vaqt oz bo'lganda va har ikki tomon uchun o'rtacha maqbul yechim topish zarur bo'lganda",
+                    "Butunlay urushish kerak bo'lganda",
+                    "Faqat bir kishi haqligida",
+                    "Hech qachon qo'llanmaydi"
+                ],
+                correct: 0
+            }
+        ]
+    },
+    {
+        id: 15,
+        topicNumber: 15,
+        title: "15-mavzu. Boshlang'ich ta'limda pedagogik konfliktlarni bartaraf etishda sinf rahbarining o'rni",
+        desc: "Kichik maktab yoshidagi bolalar muloqoti, o'yin texnologiyalari va sinf rahbarining roli.",
+        questionsCount: 5,
+        durationMinutes: 10,
+        passingScore: 70,
+        questions: [
+            {
+                q: "Boshlang'ich sinf o'quvchilari o'rtasidagi nizolarning asosiy sababi nima?",
+                options: [
+                    "O'yin qoidalariga rioya qilmaslik, o'yinchoq yoki buyumlarni talashish, o'zini nazorat qilishning hali to'liq shakllanmaganligi",
+                    "Siyosiy qarashlarning to'qnashuvi",
+                    "Imtihon topshira olmaslik",
+                    "Maosh masalasi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Boshlang'ich sinf rahbarining konfliktni hal etishdagi eng samarali vositasi qaysi?",
+                options: [
+                    "Ertak-terapiya, rolli o'yinlar va qiziqarli tarbiyaviy hikoyalar orqali tushuntirish",
+                    "Doskaga chiqarib jazolash",
+                    "O'quvchini darsdan chiqarib yuborish",
+                    "Kundaligiga 2 qo'yish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Kichik maktab yoshidagi bolalarda emotsional intellektni rivojlantirish nima beradi?",
+                options: [
+                    "O'z hissiyotlarini taniy olish, do'stlariga hamdard bo'lish va ziddiyatlarni mushtlashuvsiz hal qilish",
+                    "Faqat jismoniy kuch beradi",
+                    "Bolani jim qilib qo'yadi",
+                    "Hech qanday ta'sir ko'rsatmaydi"
+                ],
+                correct: 0
+            },
+            {
+                q: "Boshlang'ich sinfda ikki o'quvchi urishib qolsa, o'qituvchining birinchi vazifasi nima?",
+                options: [
+                    "Bolalarni tinchlantirish, xavfsizlikni ta'minlash va har ikkalasiga nima bo'lganini navbat bilan aytib berish imkonini berish",
+                    "Kim birinchi boshlaganini darhol kaltaklash",
+                    "Butun sinf oldida ularni qoralash",
+                    "Direktor xonasiga olib borish"
+                ],
+                correct: 0
+            },
+            {
+                q: "Sinf rahbarining o'quvchilarga nisbatan adolatli munosabati nima uchun muhim?",
+                options: [
+                    "Chunki o'qituvchining har bir bahosi va munosabati bolalarning o'zaro do'stligiga bevosita ta'sir qiladi (sevimlilar yaratmaslik)",
+                    "Faqat ma'muriyat oldida hisobot uchun",
+                    "Dars jadvalini to'ldirish uchun",
+                    "Hech qanday ahamiyati yo'q"
+                ],
+                correct: 0
+            }
+        ]
+    }
 ];
 
 // ==================== SIMULYATSIYALAR ====================
