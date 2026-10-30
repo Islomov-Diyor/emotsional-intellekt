@@ -296,6 +296,26 @@ window.renderPlatformMaterialCardHtml = function({
 };
 
 // =============================================================================
+// PLATFORMA KESHINI AVTOMATIK YANGILASH (CACHE BUSTER & FORCE SYNC v4.0)
+// Klient eski keshda qolib ketmasligi uchun avtomatik tozalash va yangilash
+// =============================================================================
+const APP_STORAGE_VERSION = 'rei_v4.0_20261030';
+try {
+    if (typeof localStorage !== 'undefined') {
+        const storedVer = localStorage.getItem('rei_app_version');
+        if (storedVer !== APP_STORAGE_VERSION) {
+            localStorage.removeItem('rei_uploaded_files');
+            localStorage.setItem('rei_app_version', APP_STORAGE_VERSION);
+            if (typeof indexedDB !== 'undefined') {
+                try {
+                    indexedDB.deleteDatabase('REI_Platform_Files_DB');
+                } catch (e) {}
+            }
+        }
+    }
+} catch (e) {}
+
+// =============================================================================
 // FILE MANAGER - FAYLLARNI SAQLASH VA BOSHQARISH TIZIMI
 // =============================================================================
 class FileStorageManager {
