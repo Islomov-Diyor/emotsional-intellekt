@@ -358,9 +358,24 @@
         <!-- ==================== TESTS PAGE ==================== -->
         <section id="page-tests" class="page">
             <div class="page-header compact">
-                <h1 class="page-title">📝 Testlar</h1>
-                <p class="page-description">Mavzular bo'yicha bilimni sinovchi test savollari</p>
+                <h1 class="page-title">📝 Testlar va Nazorat Savollari</h1>
+                <p class="page-description">BTK 100 talik yakuniy test to'plami, 100 ta umumiy savollar va 1-15 mavzular bo'yicha test materiallari</p>
             </div>
+
+            <div class="test-intro-banner" style="background:linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08)); border:1px solid rgba(59,130,246,0.25); border-radius:14px; padding:1.25rem 1.5rem; margin-bottom:1.75rem; display:flex; align-items:center; justify-content:space-between; gap:1.25rem; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <span style="font-size:2.2rem;">📑</span>
+                    <div>
+                        <h4 style="margin:0 0 0.25rem 0; font-size:1.05rem; font-weight:700; color:var(--text-primary);">Rasmiy fan testlari va nazorat savollari to'plami</h4>
+                        <p style="margin:0; font-size:0.875rem; color:var(--text-muted); max-width:680px;">Barcha 15 ta mavzu bo'yicha 100 talik testlar to'plami va 100 ta umumiy savollar Google Diskka to'liq yuklangan. Har bir kartochkadagi <b>Yuklab olish</b> yoki <b>Prevyu (👁️)</b> tugmasi orqali to'liq ochishingiz mumkin.</p>
+                    </div>
+                </div>
+                <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+                    <button class="btn btn-primary btn-sm" onclick="fileManager.downloadFile('test-100')"><span>📥 100 talik test (.docx)</span></button>
+                    <button class="btn btn-outline-sm" onclick="fileManager.downloadFile('test-qa-100')"><span>📄 100 ta savol (.doc)</span></button>
+                </div>
+            </div>
+
             <div class="cards-grid" id="tests-grid">
                 <!-- Populated by JS -->
             </div>
@@ -1196,7 +1211,7 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="data.js?v=3.6"></script>
-    <script src="app.js?v=3.6"></script>
+    <script src="data.js?v=3.7"></script>
+    <script src="app.js?v=3.7"></script>
 </body>
 </html>

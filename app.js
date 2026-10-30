@@ -643,6 +643,10 @@ class FileStorageManager {
             const pr = practicalsData.find(f => f.fileId === id || f.id === id);
             if (pr) file = { ...pr, isGoogleDrive: true };
         }
+        if (!file && typeof testsData !== 'undefined') {
+            const t = testsData.find(f => f.fileId === id || f.id === id || String(f.id) === String(id));
+            if (t) file = { ...t, isGoogleDrive: !!(t.driveId || t.isGoogleDrive) };
+        }
         if (!file) {
             showToast('Fayl topilmadi', 'danger');
             return;
@@ -1500,7 +1504,17 @@ function initTests() {
             }
         });
 
-        const combined = Array.from(map.values());
+        const combined = Array.from(map.values()).sort((a, b) => {
+            const getOrder = (item) => {
+                if (item.id === 'test-100' || item.id === 100 || (item.name && item.name.includes('100_test'))) return 1;
+                if (item.id === 'test-qa-100' || item.id === 101 || (item.name && item.name.includes('100_umumiy'))) return 2;
+                const match = String(item.id).match(/test-(\d+)/);
+                if (match) return 10 + parseInt(match[1]);
+                return 100;
+            };
+            return getOrder(a) - getOrder(b);
+        });
+
         grid.className = 'cards-grid file-slots-grid';
         grid.innerHTML = '';
         if (combined.length === 0) {
@@ -1517,17 +1531,21 @@ function initTests() {
         }
 
         combined.forEach((t, idx) => {
+            const is100Test = t.id === 'test-100' || t.id === 100 || (t.name && t.name.includes('100_test'));
+            const is100QA = t.id === 'test-qa-100' || t.id === 101 || (t.name && t.name.includes('100_umumiy'));
+            const badge = is100Test ? "⭐ Asosiy Test" : (is100QA ? "⭐ 100 Savol" : "Mavzu Testi");
+
             const cardHtml = renderPlatformMaterialCardHtml({
                 id: t.id,
                 topicTitle: t.title,
                 fileName: t.name || `${t.title}.docx`,
-                fileSize: t.size || 949964,
-                downloadsCount: t.downloadsCount || (50 + (idx % 6)),
-                ext: t.type || 'docx',
-                categoryBadge: "Test",
+                fileSize: t.size || (is100Test ? 1250000 : (is100QA ? 1180000 : 949964)),
+                downloadsCount: t.downloadsCount || (120 + (idx % 15)),
+                ext: t.type || (is100Test ? 'docx' : 'doc'),
+                categoryBadge: badge,
                 subj: "FAN: RAQAMLI EMOTSIONAL INTELEKT",
                 plan: t.plan,
-                driveId: t.driveId,
+                driveId: t.driveId || "1CFHsx3O2WtbQEizL7rzuojPUEmDCJUZW",
                 slotNumber: idx + 1
             });
             grid.insertAdjacentHTML('beforeend', cardHtml);
@@ -3634,8 +3652,30 @@ window.deleteFileFromHub = async function(fileId) {
 };
 
 window.openFilePreview = function(fileId) {
-    const file = fileManager.memoryFiles.find(f => f.id === fileId);
-    if (!file) return;
+    let file = (fileManager && fileManager.memoryFiles) ? fileManager.memoryFiles.find(f => f.id === fileId) : null;
+    if (!file && typeof defaultPlatformMaterials !== 'undefined') {
+        file = defaultPlatformMaterials.find(f => f.id === fileId);
+    }
+    if (!file && typeof testsData !== 'undefined') {
+        const t = testsData.find(f => f.fileId === fileId || f.id === fileId || String(f.id) === String(fileId));
+        if (t) file = { ...t, isGoogleDrive: !!(t.driveId || t.isGoogleDrive) };
+    }
+    if (!file && typeof lecturesData !== 'undefined') {
+        const l = lecturesData.find(f => f.fileId === fileId || f.id === fileId);
+        if (l) file = { ...l, isGoogleDrive: true };
+    }
+    if (!file && typeof presentationsData !== 'undefined') {
+        const p = presentationsData.find(f => f.fileId === fileId || f.id === fileId);
+        if (p) file = { ...p, isGoogleDrive: true };
+    }
+    if (!file && typeof practicalsData !== 'undefined') {
+        const pr = practicalsData.find(f => f.fileId === fileId || f.id === fileId);
+        if (pr) file = { ...pr, isGoogleDrive: true };
+    }
+    if (!file) {
+        showToast("Fayl topilmadi", "warning");
+        return;
+    }
 
     const modal = document.getElementById('file-preview-modal');
     const titleElem = document.getElementById('preview-file-title');
