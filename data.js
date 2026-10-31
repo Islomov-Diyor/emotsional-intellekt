@@ -564,6 +564,25 @@ const defaultPlatformMaterials = [
         "slotId": 14
     },
     {
+        "id": "pres-15",
+        "name": "BTK-15-taqdimot.pptx",
+        "topic": "15-mavzu taqdimoti: Boshlang'ich ta'limda pedagogik konfliktlarni bartaraf etishda sinf rahbarining o'rni",
+        "subject": "Fan: Raqamli emotsional intelekt",
+        "category": "presentation",
+        "type": "pptx",
+        "size": 9781730,
+        "downloadsCount": 125,
+        "uploadedAt": "2026-10-31T12:00:00.000Z",
+        "isGoogleDrive": true,
+        "driveId": "1aAv_MpcZa4J4zcT058JEdRs3S24DifOk",
+        "driveUrl": "https://drive.google.com/file/d/1aAv_MpcZa4J4zcT058JEdRs3S24DifOk/view?usp=sharing",
+        "viewUrl": "https://drive.google.com/file/d/1aAv_MpcZa4J4zcT058JEdRs3S24DifOk/view?usp=sharing",
+        "previewUrl": "https://drive.google.com/file/d/1aAv_MpcZa4J4zcT058JEdRs3S24DifOk/preview",
+        "downloadUrl": "https://drive.google.com/uc?export=download&id=1aAv_MpcZa4J4zcT058JEdRs3S24DifOk",
+        "thumbnailUrl": "https://drive.google.com/thumbnail?id=1aAv_MpcZa4J4zcT058JEdRs3S24DifOk&sz=w800",
+        "slotId": 15
+    },
+    {
         "id": "prac-1",
         "name": "1- BTK amaliy (4).doc",
         "topic": "1-amaliy mashg'ulot: Pedagogik konfliktologiya fanining predmeti, maqsad va vazifalari",
