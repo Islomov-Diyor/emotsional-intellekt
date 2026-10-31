@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=4.2">
+    <link rel="stylesheet" href="styles.css?v=4.4">
     <style>
         /* Critical styles for REI launch banner & button to bypass browser cache */
         .rei-launch-banner {
@@ -453,6 +453,21 @@
                                     <div class="hud-corner bottom-right"></div>
                                     <div class="hud-data-badge" id="hud-face-detected">🎯 YUZ QIDIRILMOQDA...</div>
                                 </div>
+
+                                <!-- No face warning overlay (when non-face image uploaded or no face found) -->
+                                <div class="no-face-warning-overlay hidden" id="no-face-warning">
+                                    <span class="warning-icon">⚠️</span>
+                                    <h4>Suratda inson yuzi aniqlanmadi</h4>
+                                    <p id="no-face-warning-text">Yuklangan rasmda biometrik inson yuzi topilmadi. Tahlil qilish uchun faqat inson yuzi aks etgan sifatli portret suratini ko'rsating yoki veb-kameradan foydalaning.</p>
+                                    <div style="display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:center;">
+                                        <button type="button" class="btn btn-primary btn-sm" onclick="startCamera()">
+                                            <span>📹 Jonli kameraga o'tish</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('camera-photo-upload-input').click()" style="color:white; border-color:rgba(255,255,255,0.4);">
+                                            <span>📁 Boshqa rasm yuklash</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Action Toolbar -->
@@ -460,14 +475,20 @@
                                 <button class="btn btn-primary" id="btn-toggle-camera" onclick="toggleCamera()">
                                     <span id="btn-camera-text">📹 Kamerani yoqish</span>
                                 </button>
-                                <button class="btn btn-warning" id="btn-freeze-camera" onclick="toggleFreezeAnalysis()" disabled style="display:none;">
-                                    <span id="btn-freeze-text">⏸️ Natijani fiksatsiya qilish</span>
+                                <button class="btn btn-shutter-main" id="btn-snapshot-analyze" onclick="captureAndAnalyze()" style="display:none;">
+                                    <span>📸 Yuzni suratga olish va tahlil</span>
                                 </button>
-                                <button class="btn btn-outline" id="btn-snapshot-analyze" onclick="captureAndAnalyze()" disabled>
-                                    <span>📸 Suratga olish va xulosa</span>
+                                <button class="btn btn-warning" id="btn-freeze-camera" onclick="toggleFreezeAnalysis()" style="display:none;">
+                                    <span id="btn-freeze-text">⏸️ To'xtatish</span>
+                                </button>
+                                <button class="btn btn-outline" id="btn-resume-camera" onclick="resumeCameraFromCapture()" style="display:none;">
+                                    <span>🔄 Qayta suratga olish</span>
+                                </button>
+                                <button class="btn btn-outline" id="btn-view-report-modal" onclick="openSnapshotReportModalIfAvailable()" style="display:none;">
+                                    <span>📋 Natija varaqasi</span>
                                 </button>
                                 <button class="btn btn-outline" id="btn-upload-photo-scan" onclick="document.getElementById('camera-photo-upload-input').click()">
-                                    <span>📁 Rasm yuklash va tahlil</span>
+                                    <span>📁 Rasm yuklash</span>
                                 </button>
                                 <input type="file" id="camera-photo-upload-input" accept="image/*" class="file-input-hidden" onchange="handlePhotoUploadForAnalysis(event)">
                             </div>
@@ -1217,7 +1238,7 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="data.js?v=4.2"></script>
-    <script src="app.js?v=4.2"></script>
+    <script src="data.js?v=4.4"></script>
+    <script src="app.js?v=4.4"></script>
 </body>
 </html>

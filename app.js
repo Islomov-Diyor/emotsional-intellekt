@@ -299,7 +299,7 @@ window.renderPlatformMaterialCardHtml = function({
 // PLATFORMA KESHINI AVTOMATIK YANGILASH (CACHE BUSTER & FORCE SYNC v4.0)
 // Klient eski keshda qolib ketmasligi uchun avtomatik tozalash va yangilash
 // =============================================================================
-const APP_STORAGE_VERSION = 'rei_v4.2_20261031';
+const APP_STORAGE_VERSION = 'rei_v4.4_20261031';
 try {
     if (typeof localStorage !== 'undefined') {
         const storedVer = localStorage.getItem('rei_app_version');
@@ -1864,6 +1864,7 @@ let currentStress = 16;
 let cameraFrozen = false;
 let frozenFrameCanvas = null;
 let smoothBoundingBox = { minX: 35, maxX: 125, minY: 18, maxY: 102 };
+let hasDetectedHumanFace = false;
 
 // Stabilizatsiya va Gisterezis nazorati (pitirlash va tez sakrashlarni yo'qotish uchun)
 let candidateEmotionType = 'neutral';
@@ -1876,7 +1877,7 @@ const EMOTION_CONFIGS = {
         type: 'smile',
         label: 'Quvonch va tabassum',
         emoji: '😊',
-        tag: '😊 QUVOANCH VA TABASSUM',
+        tag: '😊 QUVONCH VA TABASSUM',
         color: '#10b981',
         tip: "Yuzingizda samimiy tabassum va yuqori ijobiy hissiy ko'tarinkilik aniqlandi. Ushbu holat raqamli ta'limda ijodiy fikrlash, faollik va o'zaro hamkorlik uchun eng samarali vaqt hisoblanadi."
     },
@@ -1916,9 +1917,136 @@ let liveEmotionState = {
     tip: EMOTION_CONFIGS.neutral.tip
 };
 
+// =============================================================================
+// BIOMETRIK INSON YUZINI ANIQ TEKSHIRISH (STRICT FACE VALIDATOR)
+// Notanish buyumlar (stol, avtomobil, tabiat, mebel) uchun tahlil bermaslik
+// =============================================================================
+function validateAndLocateFace(data, width, height) {
+    let skinCount = 0;
+    let minX = width, maxX = 0, minY = height, maxY = 0;
+
+    for (let y = 6; y < height - 6; y += 2) {
+        for (let x = 6; x < width - 6; x += 2) {
+            const idx = (y * width + x) * 4;
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+
+            const Y = 0.299 * r + 0.587 * g + 0.114 * b;
+            const Cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
+            const Cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+
+            // Inson terisi rangi: RGB nisbat (R > G > B) va YCbCr oraliqlari
+            const isSkinRgb = (r > 55 && g > 38 && b > 20) && (r > g) && (r - g >= 8);
+            const isSkinYCbCr = (Cb >= 80 && Cb <= 132 && Cr >= 133 && Cr <= 175 && Y > 30);
+
+            if (isSkinRgb && isSkinYCbCr) {
+                skinCount++;
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+        }
+    }
+
+    const totalSampledPixels = ((height - 12) / 2) * ((width - 12) / 2);
+    const skinRatio = skinCount / totalSampledPixels;
+
+    // Minimum teri maydoni (juda oz bo'lsa yoki butun rasm bir xil bo'lsa - stol, devor, mebel)
+    if (skinCount < 100 || skinRatio < 0.04 || skinRatio > 0.88) {
+        return { isFace: false, skinCount, skinRatio, reason: "Yetarli teri rangi yoki yuz maydoni topilmadi" };
+    }
+
+    const faceW = maxX - minX;
+    const faceH = maxY - minY;
+    const aspect = faceW / faceH;
+
+    // Inson yuzi proporsiyasi: bo'y-en mutanosibligi
+    if (aspect < 0.45 || aspect > 1.35) {
+        return { isFace: false, skinCount, skinRatio, reason: "Yuz shakli mutanosib emas" };
+    }
+
+    if (faceW < width * 0.16 || faceH < height * 0.20) {
+        return { isFace: false, skinCount, skinRatio, reason: "Yuz o'lchami juda kichik" };
+    }
+
+    // Biometrik ko'z va yanoqlar nisbati
+    const eY1 = Math.round(minY + faceH * 0.22);
+    const eY2 = Math.round(minY + faceH * 0.48);
+    const leftEyeX1 = Math.round(minX + faceW * 0.15);
+    const leftEyeX2 = Math.round(minX + faceW * 0.48);
+    const rightEyeX1 = Math.round(minX + faceW * 0.52);
+    const rightEyeX2 = Math.round(minX + faceW * 0.85);
+
+    let leftEyeDarkness = 0, leftEyeCount = 0;
+    let rightEyeDarkness = 0, rightEyeCount = 0;
+    let cheekDarkness = 0, cheekCount = 0;
+
+    for (let y = eY1; y < eY2; y += 2) {
+        for (let x = leftEyeX1; x < leftEyeX2; x += 2) {
+            const idx = (y * width + x) * 4;
+            leftEyeDarkness += (0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2]);
+            leftEyeCount++;
+        }
+        for (let x = rightEyeX1; x < rightEyeX2; x += 2) {
+            const idx = (y * width + x) * 4;
+            rightEyeDarkness += (0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2]);
+            rightEyeCount++;
+        }
+    }
+
+    const chY1 = Math.round(minY + faceH * 0.50);
+    const chY2 = Math.round(minY + faceH * 0.68);
+    for (let y = chY1; y < chY2; y += 2) {
+        for (let x = Math.round(minX + faceW * 0.20); x < Math.round(minX + faceW * 0.80); x += 2) {
+            const idx = (y * width + x) * 4;
+            cheekDarkness += (0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2]);
+            cheekCount++;
+        }
+    }
+
+    const avgLeftEye = leftEyeCount > 0 ? leftEyeDarkness / leftEyeCount : 128;
+    const avgRightEye = rightEyeCount > 0 ? rightEyeDarkness / rightEyeCount : 128;
+    const avgCheek = cheekCount > 0 ? cheekDarkness / cheekCount : 128;
+
+    // Og'iz sohasi gradienti
+    const mY1 = Math.round(minY + faceH * 0.68);
+    const mY2 = Math.round(minY + faceH * 0.90);
+    let mouthGradSum = 0, mouthGradCount = 0;
+    for (let y = mY1; y < mY2; y += 2) {
+        for (let x = Math.round(minX + faceW * 0.25); x < Math.round(minX + faceW * 0.75); x += 2) {
+            const idx = (y * width + x) * 4;
+            const nIdx = (y * width + (x + 2)) * 4;
+            if (x + 2 < width) {
+                const lum1 = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+                const lum2 = 0.299 * data[nIdx] + 0.587 * data[nIdx + 1] + 0.114 * data[nIdx + 2];
+                if (Math.abs(lum1 - lum2) > 16) mouthGradSum++;
+                mouthGradCount++;
+            }
+        }
+    }
+    const mouthGradDensity = mouthGradCount > 0 ? mouthGradSum / mouthGradCount : 0;
+
+    let faceConfidence = 0;
+    if (skinRatio >= 0.05 && skinRatio <= 0.70) faceConfidence += 30;
+    if (aspect >= 0.55 && aspect <= 1.15) faceConfidence += 25;
+    if ((avgCheek - Math.min(avgLeftEye, avgRightEye)) > 3 || Math.abs(avgLeftEye - avgRightEye) < 40) faceConfidence += 25;
+    if (mouthGradDensity > 0.06) faceConfidence += 20;
+
+    const isFace = faceConfidence >= 50;
+
+    return {
+        isFace,
+        faceConfidence,
+        bounds: { minX, maxX, minY, maxY, faceW, faceH },
+        reason: isFace ? "Inson yuzi muvaffaqiyatli aniqlandi" : "Biometrik yuz tuzilishi tasdiqlanmadi"
+    };
+}
+
 function analyzeVideoFrameForEmotions(source, isSingleImage = false) {
-    if (!source) return;
-    if (source.tagName === 'VIDEO' && (source.readyState < 2 || source.videoWidth === 0)) return;
+    if (!source) return { isFace: false };
+    if (source.tagName === 'VIDEO' && (source.readyState < 2 || source.videoWidth === 0)) return { isFace: false };
 
     if (!analysisCanvas) {
         analysisCanvas = document.createElement('canvas');
@@ -1931,34 +2059,28 @@ function analyzeVideoFrameForEmotions(source, isSingleImage = false) {
     const frame = aCtx.getImageData(0, 0, 160, 120);
     const data = frame.data;
 
-    // 1. Yuz sohasini aniqlash (YCbCr teri rangi segmentatsiyasi)
-    let minX = 160, maxX = 0, minY = 120, maxY = 0;
-    let skinCount = 0;
+    // Biometrik yuzni tekshirish
+    const faceCheck = validateAndLocateFace(data, 160, 120);
 
-    for (let y = 12; y < 108; y += 2) {
-        for (let x = 16; x < 144; x += 2) {
-            const idx = (y * 160 + x) * 4;
-            const r = data[idx];
-            const g = data[idx + 1];
-            const b = data[idx + 2];
-            const Y = 0.299 * r + 0.587 * g + 0.114 * b;
-            const Cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
-            const Cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
-
-            if (Cb >= 77 && Cb <= 130 && Cr >= 133 && Cr <= 175 && Y > 30) {
-                skinCount++;
-                if (x < minX) minX = x;
-                if (x > maxX) maxX = x;
-                if (y < minY) minY = y;
-                if (y > maxY) maxY = y;
-            }
+    if (!faceCheck.isFace) {
+        hasDetectedHumanFace = false;
+        if (isSingleImage) {
+            return { isFace: false, reason: faceCheck.reason };
         }
+        const hudFace = document.getElementById('hud-face-detected');
+        if (hudFace) {
+            hudFace.textContent = "🎯 INSON YUZI QIDIRILMOQDA...";
+            hudFace.style.color = "#94a3b8";
+            hudFace.style.borderColor = "rgba(148, 163, 184, 0.4)";
+        }
+        return { isFace: false };
     }
 
-    if (skinCount < 100 || maxX - minX < 24 || maxY - minY < 28) {
-        minX = 35; maxX = 125;
-        minY = 18; maxY = 102;
-    }
+    hasDetectedHumanFace = true;
+    const minX = faceCheck.bounds.minX;
+    const maxX = faceCheck.bounds.maxX;
+    const minY = faceCheck.bounds.minY;
+    const maxY = faceCheck.bounds.maxY;
 
     // Yuz chegarasini silliqlash (HUD overlay sakramay turishi uchun)
     if (isSingleImage) {
@@ -2149,6 +2271,7 @@ function analyzeVideoFrameForEmotions(source, isSingleImage = false) {
     }
 
     renderTelemetryToDOM();
+    return { isFace: true, dominantEmotion: dominantEmotionType };
 }
 
 function renderTelemetryToDOM() {
@@ -2210,25 +2333,104 @@ function renderTelemetryToDOM() {
     }
 }
 
-// Draw futuristic AI facial scanning geometry on canvas with dynamic emotion-adaptive coloring
+// Inson yuzi topilmaganda barcha ko'rsatkichlarni tozalash
+function renderEmptyFaceState() {
+    const barJoy = document.getElementById('bar-fill-joy');
+    const lblJoy = document.getElementById('bar-val-joy');
+    if (barJoy) barJoy.style.width = '0%';
+    if (lblJoy) lblJoy.textContent = '0%';
+
+    const barFocus = document.getElementById('bar-fill-focus');
+    const lblFocus = document.getElementById('bar-val-focus');
+    if (barFocus) barFocus.style.width = '0%';
+    if (lblFocus) lblFocus.textContent = '0%';
+
+    const barCalm = document.getElementById('bar-fill-calm');
+    const lblCalm = document.getElementById('bar-val-calm');
+    if (barCalm) barCalm.style.width = '0%';
+    if (lblCalm) lblCalm.textContent = '0%';
+
+    const barStress = document.getElementById('bar-fill-stress');
+    const lblStress = document.getElementById('bar-val-stress');
+    if (barStress) barStress.style.width = '0%';
+    if (lblStress) lblStress.textContent = '0%';
+
+    const reiElem = document.getElementById('camera-rei-score');
+    if (reiElem) reiElem.textContent = '--';
+
+    const gradeElem = document.getElementById('camera-rei-grade');
+    if (gradeElem) {
+        gradeElem.textContent = "Yuz topilmadi";
+        gradeElem.style.color = "var(--danger)";
+    }
+
+    const domEmoji = document.getElementById('dominant-emoji');
+    const domTitle = document.getElementById('dominant-title');
+    const domScore = document.getElementById('dominant-score');
+    if (domEmoji) domEmoji.textContent = '❌';
+    if (domTitle) domTitle.textContent = "Inson yuzi aniqlanmadi";
+    if (domScore) domScore.textContent = '--';
+
+    const recText = document.getElementById('camera-rec-text');
+    if (recText) recText.textContent = "Suratda biometrik inson yuzi topilmadi. Tahlil faqat inson yuzi aks etgan fotosuratlar uchun amal qiladi.";
+
+    const hudFace = document.getElementById('hud-face-detected');
+    if (hudFace) {
+        hudFace.textContent = "⚠️ INSON YUZI TOPILMADI";
+        hudFace.style.color = "#ef4444";
+        hudFace.style.borderColor = "#ef4444";
+    }
+}
+
+// Futurisik AI yuz ramkasi va skaner geometriyasini chizish
 function drawFaceMeshHUD(ctx, width, height, time, isStatic = false) {
     ctx.clearRect(0, 0, width, height);
 
-    const cx = width / 2;
-    const cy = height * 0.48;
-    const faceW = width * 0.44;
-    const faceH = height * 0.62;
+    if (!hasDetectedHumanFace && !isStatic) {
+        const cx = width / 2;
+        const cy = height * 0.48;
+        const faceW = width * 0.44;
+        const faceH = height * 0.62;
+        const boxX1 = cx - faceW / 2;
+        const boxY1 = cy - faceH / 2;
+        const boxX2 = cx + faceW / 2;
+        const boxY2 = cy + faceH / 2;
+        const cornerLen = 22;
 
-    const pulse = isStatic ? 0 : Math.sin(time * 0.003) * 2;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+        ctx.lineWidth = 1.5;
+
+        // Corners
+        ctx.beginPath();
+        ctx.moveTo(boxX1, boxY1 + cornerLen); ctx.lineTo(boxX1, boxY1); ctx.lineTo(boxX1 + cornerLen, boxY1);
+        ctx.moveTo(boxX2 - cornerLen, boxY1); ctx.lineTo(boxX2, boxY1); ctx.lineTo(boxX2, boxY1 + cornerLen);
+        ctx.moveTo(boxX1, boxY2 - cornerLen); ctx.lineTo(boxX1, boxY2); ctx.lineTo(boxX1 + cornerLen, boxY2);
+        ctx.moveTo(boxX2 - cornerLen, boxY2); ctx.lineTo(boxX2, boxY2); ctx.lineTo(boxX2, boxY2 - cornerLen);
+        ctx.stroke();
+
+        ctx.font = 'bold 12px monospace';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+        ctx.fillText("🎯 YUZINGIZNI RAMKAGA TO'G'RILANG...", cx, cy);
+        ctx.restore();
+        return;
+    }
+
+    const scaleX = width / 160;
+    const scaleY = height / 120;
+
+    const boxX1 = Math.max(10, smoothBoundingBox.minX * scaleX - 8);
+    const boxX2 = Math.min(width - 10, smoothBoundingBox.maxX * scaleX + 8);
+    const boxY1 = Math.max(10, smoothBoundingBox.minY * scaleY - 10);
+    const boxY2 = Math.min(height - 10, smoothBoundingBox.maxY * scaleY + 8);
+    const cx = (boxX1 + boxX2) / 2;
+    const cy = (boxY1 + boxY2) / 2;
+    const cornerLen = Math.min(28, (boxX2 - boxX1) * 0.25);
+
     const scanY = isStatic 
         ? cy 
-        : (Math.sin(time * 0.002) * 0.5 + 0.5) * faceH + (cy - faceH / 2);
-
-    const boxX1 = cx - faceW / 2 + pulse;
-    const boxY1 = cy - faceH / 2 + pulse;
-    const boxX2 = cx + faceW / 2 - pulse;
-    const boxY2 = cy + faceH / 2 - pulse;
-    const cornerLen = 28;
+        : (Math.sin(time * 0.002) * 0.5 + 0.5) * (boxY2 - boxY1) + boxY1;
 
     const themeColor = liveEmotionState.color || '#00f0ff';
 
@@ -2308,19 +2510,19 @@ function drawFaceMeshHUD(ctx, width, height, time, isStatic = false) {
     ctx.strokeStyle = themeColor;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(cx - tagWidth / 2, boxY1 - 32, tagWidth, 24, 12);
+    ctx.roundRect(cx - tagWidth / 2, Math.max(10, boxY1 - 32), tagWidth, 24, 12);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = themeColor;
     ctx.shadowBlur = 6;
     ctx.textAlign = 'center';
-    ctx.fillText(tagText, cx, boxY1 - 16);
+    ctx.fillText(tagText, cx, Math.max(10, boxY1 - 32) + 16);
 
     // Bottom telemetry stats
     ctx.font = '600 11px monospace';
     ctx.fillStyle = themeColor;
-    ctx.fillText(`ISHONCHLILIK: ${liveEmotionState.score}% | HOLAT: ${liveEmotionState.label.toUpperCase()}`, cx, boxY2 + 22);
+    ctx.fillText(`ISHONCHLILIK: ${liveEmotionState.score}% | HOLAT: ${liveEmotionState.label.toUpperCase()}`, cx, Math.min(height - 10, boxY2 + 20));
 
     ctx.restore();
 }
@@ -2341,13 +2543,13 @@ function startCameraScanLoop() {
             return;
         }
 
-        // Sync canvas resolution with display
+        // Canvas o'lchamini video bilan sinxronlash
         if (canvas.width !== video.clientWidth || canvas.height !== video.clientHeight) {
             canvas.width = video.clientWidth || 640;
             canvas.height = video.clientHeight || 480;
         }
 
-        // Run real computer vision analysis every 6 frames (~10 fps for ultra-smooth responsiveness)
+        // Har 6-kadrda (~10 fps) aniq kompyuter ko'rish tahlili
         if (cameraScanFrame % 6 === 0) {
             analyzeVideoFrameForEmotions(video);
         }
@@ -2359,6 +2561,46 @@ function startCameraScanLoop() {
     }
 
     cameraAnimId = requestAnimationFrame(loop);
+}
+
+// Toolbar tugmalarini jonli kamera holatiga moslashtirish
+function updateToolbarForLiveCameraState() {
+    const snapBtn = document.getElementById('btn-snapshot-analyze');
+    const freezeBtn = document.getElementById('btn-freeze-camera');
+    const resumeBtn = document.getElementById('btn-resume-camera');
+    const reportBtn = document.getElementById('btn-view-report-modal');
+    const uploadBtn = document.getElementById('btn-upload-photo-scan');
+
+    if (snapBtn) {
+        snapBtn.style.display = 'inline-flex';
+        snapBtn.removeAttribute('disabled');
+    }
+    if (freezeBtn) {
+        freezeBtn.style.display = 'inline-flex';
+        freezeBtn.removeAttribute('disabled');
+        const freezeText = document.getElementById('btn-freeze-text');
+        if (freezeText) freezeText.innerHTML = '⏸️ To\'xtatish';
+        freezeBtn.classList.remove('btn-success');
+        freezeBtn.classList.add('btn-warning');
+    }
+    if (resumeBtn) resumeBtn.style.display = 'none';
+    if (reportBtn) reportBtn.style.display = 'none';
+    if (uploadBtn) uploadBtn.style.display = 'inline-flex';
+}
+
+// Toolbar tugmalarini surat olingan (fiksatsiya) holatiga moslashtirish
+function updateToolbarForCapturedState() {
+    const snapBtn = document.getElementById('btn-snapshot-analyze');
+    const freezeBtn = document.getElementById('btn-freeze-camera');
+    const resumeBtn = document.getElementById('btn-resume-camera');
+    const reportBtn = document.getElementById('btn-view-report-modal');
+    const uploadBtn = document.getElementById('btn-upload-photo-scan');
+
+    if (snapBtn) snapBtn.style.display = 'none';
+    if (freezeBtn) freezeBtn.style.display = 'none';
+    if (resumeBtn) resumeBtn.style.display = 'inline-flex';
+    if (reportBtn) reportBtn.style.display = 'inline-flex';
+    if (uploadBtn) uploadBtn.style.display = 'inline-flex';
 }
 
 // ⏸️ NATIJANI TO'XTATISH VA FIKSATSIYA QILISH (FREEZE MODE)
@@ -2377,7 +2619,7 @@ window.toggleFreezeAnalysis = function() {
     const canvas = document.getElementById('camera-overlay-canvas');
 
     if (cameraFrozen) {
-        if (btnText) btnText.innerHTML = '▶️ Jonli skanerni davom ettirish';
+        if (btnText) btnText.innerHTML = '▶️ Davom ettirish';
         if (btn) {
             btn.classList.remove('btn-warning');
             btn.classList.add('btn-success');
@@ -2394,7 +2636,7 @@ window.toggleFreezeAnalysis = function() {
 
         showToast("Natija to'xtatildi va fiksatsiya qilindi! Ko'rsatkichlarni bemalol o'rganishingiz mumkin.", "info");
     } else {
-        if (btnText) btnText.innerHTML = '⏸️ Natijani fiksatsiya qilish';
+        if (btnText) btnText.innerHTML = '⏸️ To\'xtatish';
         if (btn) {
             btn.classList.remove('btn-success');
             btn.classList.add('btn-warning');
@@ -2410,11 +2652,10 @@ window.startCamera = async function() {
     const video = document.getElementById('camera-video');
     const placeholder = document.getElementById('camera-placeholder');
     const hud = document.getElementById('camera-scan-hud');
+    const warningOverlay = document.getElementById('no-face-warning');
     const statusBadge = document.getElementById('camera-status-badge');
     const statusLabel = document.getElementById('camera-status-label');
     const btnText = document.getElementById('btn-camera-text');
-    const snapBtn = document.getElementById('btn-snapshot-analyze');
-    const freezeBtn = document.getElementById('btn-freeze-camera');
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         showToast("Brauzeringiz kamerani qo'llab-quvvatlamaydi yoki xavfsiz (HTTPS/localhost) ulanish mavjud emas. 'Rasm yuklash' orqali tekshirishingiz mumkin.", "danger");
@@ -2423,6 +2664,7 @@ window.startCamera = async function() {
 
     try {
         if (statusLabel) statusLabel.textContent = "Kamera ulanmoqda...";
+        if (warningOverlay) warningOverlay.classList.add('hidden');
 
         if (cameraStream) {
             cameraStream.getTracks().forEach(t => t.stop());
@@ -2441,11 +2683,13 @@ window.startCamera = async function() {
         cameraStream = stream;
         cameraActive = true;
         cameraFrozen = false;
+        hasDetectedHumanFace = false;
 
         if (video) {
             video.srcObject = stream;
             video.muted = true;
             video.playsInline = true;
+            video.style.opacity = '1';
             try {
                 await video.play();
             } catch (playErr) {
@@ -2462,19 +2706,11 @@ window.startCamera = async function() {
         }
         if (statusLabel) statusLabel.textContent = "🟢 Jonli skanerlash faol";
         if (btnText) btnText.textContent = "⏹️ Kamerani o'chirish";
-        if (snapBtn) snapBtn.removeAttribute('disabled');
 
-        if (freezeBtn) {
-            freezeBtn.style.display = 'inline-flex';
-            freezeBtn.removeAttribute('disabled');
-            const freezeText = document.getElementById('btn-freeze-text');
-            if (freezeText) freezeText.innerHTML = '⏸️ Natijani fiksatsiya qilish';
-            freezeBtn.classList.remove('btn-success');
-            freezeBtn.classList.add('btn-warning');
-        }
+        updateToolbarForLiveCameraState();
 
         startCameraScanLoop();
-        showToast("Veb-kamera ulandi! Jonli barqaror AI skaner ishga tushdi.", "success");
+        showToast("Veb-kamera ulandi! Jonli AI skaneri ishga tushdi.", "success");
     } catch (err) {
         console.error("Camera access error:", err);
         let msg = "Kameraga ulanib bo'lmadi. ";
@@ -2499,6 +2735,7 @@ window.stopCamera = function() {
     }
     cameraActive = false;
     cameraFrozen = false;
+    hasDetectedHumanFace = false;
 
     if (cameraAnimId) {
         cancelAnimationFrame(cameraAnimId);
@@ -2506,30 +2743,43 @@ window.stopCamera = function() {
     }
 
     const video = document.getElementById('camera-video');
-    if (video) video.srcObject = null;
+    if (video) {
+        video.srcObject = null;
+        video.style.opacity = '1';
+    }
 
     const placeholder = document.getElementById('camera-placeholder');
     const hud = document.getElementById('camera-scan-hud');
+    const warningOverlay = document.getElementById('no-face-warning');
     const statusBadge = document.getElementById('camera-status-badge');
     const statusLabel = document.getElementById('camera-status-label');
     const btnText = document.getElementById('btn-camera-text');
     const snapBtn = document.getElementById('btn-snapshot-analyze');
     const freezeBtn = document.getElementById('btn-freeze-camera');
+    const resumeBtn = document.getElementById('btn-resume-camera');
+    const reportBtn = document.getElementById('btn-view-report-modal');
     const canvas = document.getElementById('camera-overlay-canvas');
 
     if (placeholder) placeholder.classList.remove('hidden');
     if (hud) hud.classList.add('hidden');
+    if (warningOverlay) warningOverlay.classList.add('hidden');
     if (statusBadge) {
         statusBadge.classList.remove('active');
         statusBadge.classList.remove('frozen');
     }
     if (statusLabel) statusLabel.textContent = "Kamera o'chiq";
     if (btnText) btnText.textContent = "📹 Kamerani yoqish";
-    if (snapBtn) snapBtn.setAttribute('disabled', 'true');
-    if (freezeBtn) {
-        freezeBtn.setAttribute('disabled', 'true');
-        freezeBtn.style.display = 'none';
+
+    if (snapBtn) {
+        snapBtn.style.display = 'none';
+        snapBtn.setAttribute('disabled', 'true');
     }
+    if (freezeBtn) {
+        freezeBtn.style.display = 'none';
+        freezeBtn.setAttribute('disabled', 'true');
+    }
+    if (resumeBtn) resumeBtn.style.display = 'none';
+    if (reportBtn) reportBtn.style.display = 'none';
 
     if (canvas) {
         const ctx = canvas.getContext('2d');
@@ -2545,46 +2795,122 @@ window.toggleCamera = function() {
     }
 };
 
-// Snapshot capture & Deep AI Diagnostic Report
+// 📸 ASOSIY AMAL: EKRANDAN YUZNI SURATGA OLISH VA FIKSATSIYA QILISH
 window.captureAndAnalyze = function() {
     const video = document.getElementById('camera-video');
     const screenElem = document.getElementById('camera-screen');
-    const modal = document.getElementById('camera-snapshot-modal');
-    const imgPreview = document.getElementById('snapshot-preview-img');
-    const timestampElem = document.getElementById('snapshot-timestamp');
+    const canvas = document.getElementById('camera-overlay-canvas');
 
-    if (!video || (!cameraActive && !lastCapturedDataUrl)) {
+    if (!video || !cameraActive || video.readyState < 2) {
         showToast("Suratga olish uchun avval kamerani yoqing!", "warning");
+        return;
+    }
+
+    // Yuz kamerada aniqlanganligini tekshirish
+    if (!hasDetectedHumanFace) {
+        showToast("⚠️ Kamerada inson yuzi aniqlanmadi! Iltimos, yuzingizni kameraga to'g'ri tuting va qayta urinib ko'ring.", "warning");
         return;
     }
 
     playCameraShutterSound();
 
-    // Visual camera shutter flash effect
+    // Shutter miltillash effekti
     if (screenElem) {
         screenElem.style.filter = 'brightness(2.2)';
         setTimeout(() => { screenElem.style.filter = ''; }, 150);
     }
 
-    if (cameraActive && video.videoWidth > 0) {
-        const snapCanvas = document.createElement('canvas');
-        snapCanvas.width = video.videoWidth || 640;
-        snapCanvas.height = video.videoHeight || 480;
-        const ctx = snapCanvas.getContext('2d');
+    // Kamerani to'xtatish va kadrni canvasga fiksatsiya qilish
+    cameraFrozen = true;
+    if (cameraAnimId) {
+        cancelAnimationFrame(cameraAnimId);
+        cameraAnimId = null;
+    }
 
-        ctx.translate(snapCanvas.width, 0);
+    if (canvas && video.videoWidth > 0) {
+        canvas.width = screenElem ? screenElem.clientWidth : 640;
+        canvas.height = screenElem ? screenElem.clientHeight : 480;
+        const ctx = canvas.getContext('2d');
+
+        // Oynasimon ko'rinishda olingan kadrni to'g'ridan-to'g'ri chizish
+        ctx.save();
+        ctx.translate(canvas.width, 0);
         ctx.scale(-1, 1);
-        ctx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
 
-        lastCapturedDataUrl = snapCanvas.toDataURL('image/png');
+        // Ushbu olingan kadr ustida yakuniy aniq tahlilni o'tkazish
+        analyzeVideoFrameForEmotions(canvas, true);
+
+        // Olingan surat ustiga fiksatsiyalangan HUD meshini chizish
+        drawFaceMeshHUD(ctx, canvas.width, canvas.height, 1200, true);
+
+        lastCapturedDataUrl = canvas.toDataURL('image/png');
     }
 
-    if (imgPreview && lastCapturedDataUrl) {
-        imgPreview.src = lastCapturedDataUrl;
+    // Harakatlanuvchi videoni yashirib, olingan suratni canvasda qoldirish
+    if (video) video.style.opacity = '0';
+
+    const statusBadge = document.getElementById('camera-status-badge');
+    const statusLabel = document.getElementById('camera-status-label');
+    const chip = document.getElementById('telemetry-mode-chip');
+
+    if (statusBadge) {
+        statusBadge.classList.add('active');
+        statusBadge.classList.add('frozen');
+    }
+    if (statusLabel) statusLabel.textContent = "📷 Surat olindi (Fiksatsiyalangan)";
+    if (chip) chip.textContent = "📷 Surat tahlili";
+
+    updateToolbarForCapturedState();
+
+    showToast("Surat olindi va yuz emotsiyalari fiksatsiya qilindi! To'liq hisobot uchun 'Natija varaqasi' tugmasini bosing.", "success");
+};
+
+// 🔄 Olingan suratdan qayta jonli kameraga qaytish
+window.resumeCameraFromCapture = function() {
+    const video = document.getElementById('camera-video');
+    const warningOverlay = document.getElementById('no-face-warning');
+
+    if (warningOverlay) warningOverlay.classList.add('hidden');
+    if (video) video.style.opacity = '1';
+
+    if (!cameraActive) {
+        window.startCamera();
+        return;
     }
 
-    const now = new Date();
-    if (timestampElem) timestampElem.textContent = now.toLocaleTimeString();
+    cameraFrozen = false;
+    updateToolbarForLiveCameraState();
+
+    const statusBadge = document.getElementById('camera-status-badge');
+    const statusLabel = document.getElementById('camera-status-label');
+    const chip = document.getElementById('telemetry-mode-chip');
+
+    if (statusBadge) {
+        statusBadge.classList.add('active');
+        statusBadge.classList.remove('frozen');
+    }
+    if (statusLabel) statusLabel.textContent = "🟢 Jonli skanerlash faol";
+    if (chip) chip.textContent = "Jonli tahlil";
+
+    startCameraScanLoop();
+    showToast("Jonli kamera qayta ishga tushdi. Suratga olish uchun tayyor bo'lganingizda tugmani bosing.", "info");
+};
+
+// 📋 Natija varaqasi modalini ochish
+window.openSnapshotReportModalIfAvailable = function() {
+    if (!lastCapturedDataUrl) {
+        showToast("Natija varaqasini ko'rish uchun avval suratga oling yoki rasm yuklang!", "warning");
+        return;
+    }
+
+    const modal = document.getElementById('camera-snapshot-modal');
+    const imgPreview = document.getElementById('snapshot-preview-img');
+    const timestampElem = document.getElementById('snapshot-timestamp');
+
+    if (imgPreview) imgPreview.src = lastCapturedDataUrl;
+    if (timestampElem) timestampElem.textContent = new Date().toLocaleTimeString();
 
     const joyPct = currentJoy;
     const focusPct = currentFocus;
@@ -2617,7 +2943,6 @@ window.captureAndAnalyze = function() {
     if (recContent) recContent.textContent = liveEmotionState.tip;
 
     if (modal) modal.classList.add('active');
-    showToast("Surat olindi va to'liq emotsional diagnostika hisoboti tayyorlandi!", "success");
 };
 
 window.closeCameraSnapshotModal = function() {
@@ -2671,7 +2996,7 @@ window.downloadSnapshotImage = function() {
     showToast("Surat kompyuteringizga yuklab olindi!", "success");
 };
 
-// Handle uploaded photo for EI analysis (Rasm yuklab aniq tahlil qilish)
+// 📁 RASM YUKLAB TAHLIL QILISH (ODAM YUZI BO'LMASA QAT'IY BLOKLASH)
 window.handlePhotoUploadForAnalysis = function(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
@@ -2687,73 +3012,67 @@ window.handlePhotoUploadForAnalysis = function(event) {
             const hud = document.getElementById('camera-scan-hud');
             const statusBadge = document.getElementById('camera-status-badge');
             const statusLabel = document.getElementById('camera-status-label');
-            const snapBtn = document.getElementById('btn-snapshot-analyze');
-            const chip = document.getElementById('telemetry-mode-chip');
+            const warningOverlay = document.getElementById('no-face-warning');
 
             if (placeholder) placeholder.classList.add('hidden');
             if (hud) hud.classList.remove('hidden');
+
+            const screen = document.getElementById('camera-screen');
+            if (canvas) {
+                canvas.width = screen ? screen.clientWidth : 640;
+                canvas.height = screen ? screen.clientHeight : 480;
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            }
+
+            // Inson yuzini aniqlash va qat'iy tekshirish
+            const analysisResult = analyzeVideoFrameForEmotions(img, true);
+
+            if (!analysisResult || !analysisResult.isFace) {
+                // INSON YUZI TOPILMADI - BARCHA BAHOLAR VA MODAL BLOKLANADI
+                if (warningOverlay) warningOverlay.classList.remove('hidden');
+                if (statusBadge) {
+                    statusBadge.classList.add('active');
+                    statusBadge.classList.remove('frozen');
+                }
+                if (statusLabel) statusLabel.textContent = "⚠️ Inson yuzi topilmadi";
+                const chip = document.getElementById('telemetry-mode-chip');
+                if (chip) chip.textContent = "❌ Yuz topilmadi";
+
+                renderEmptyFaceState();
+
+                // Snapshot tugmalarini yashirish
+                document.getElementById('btn-snapshot-analyze')?.style.setProperty('display', 'none');
+                document.getElementById('btn-freeze-camera')?.style.setProperty('display', 'none');
+                document.getElementById('btn-resume-camera')?.style.setProperty('display', 'none');
+                document.getElementById('btn-view-report-modal')?.style.setProperty('display', 'none');
+
+                showToast("Yuklangan rasmda inson yuzi aniqlanmadi! Tahlil faqat inson yuzi aks etgan suratlar uchun amal qiladi.", "warning");
+                return;
+            }
+
+            // INSON YUZI ANIQLANDI
+            if (warningOverlay) warningOverlay.classList.add('hidden');
             if (statusBadge) {
                 statusBadge.classList.add('active');
                 statusBadge.classList.add('frozen');
             }
             if (statusLabel) statusLabel.textContent = "📁 Yuklangan rasm tahlili";
-            if (snapBtn) snapBtn.removeAttribute('disabled');
+            const chip = document.getElementById('telemetry-mode-chip');
             if (chip) chip.textContent = "📁 Rasm tahlili (Fiksatsiyalangan)";
 
             if (canvas) {
-                const screen = document.getElementById('camera-screen');
-                canvas.width = screen ? screen.clientWidth : 640;
-                canvas.height = screen ? screen.clientHeight : 480;
                 const ctx = canvas.getContext('2d');
-
-                // Draw photo fitted to screen
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                // Deterministic real computer vision analysis on uploaded image
-                analyzeVideoFrameForEmotions(img, true);
-
-                // Overlay face mesh geometry on photo with detected color
                 drawFaceMeshHUD(ctx, canvas.width, canvas.height, 1200, true);
-
                 lastCapturedDataUrl = canvas.toDataURL('image/png');
             }
 
-            // Open snapshot report modal with real detected metrics
-            const modal = document.getElementById('camera-snapshot-modal');
-            const imgPreview = document.getElementById('snapshot-preview-img');
-            const timestampElem = document.getElementById('snapshot-timestamp');
+            updateToolbarForCapturedState();
 
-            if (imgPreview) imgPreview.src = lastCapturedDataUrl || e.target.result;
-            if (timestampElem) timestampElem.textContent = new Date().toLocaleTimeString();
-
-            const scoreNum = document.getElementById('snap-score-num');
-            if (scoreNum) scoreNum.textContent = liveEmotionState.score;
-
-            const gradeBadge = document.getElementById('snap-grade-badge');
-            if (gradeBadge) {
-                gradeBadge.textContent = liveEmotionState.label;
-                gradeBadge.style.background = liveEmotionState.color;
-            }
-
-            const joyEl = document.getElementById('snap-joy-pct');
-            if (joyEl) joyEl.textContent = currentJoy + '%';
-
-            const focusEl = document.getElementById('snap-focus-pct');
-            if (focusEl) focusEl.textContent = currentFocus + '%';
-
-            const calmEl = document.getElementById('snap-calm-pct');
-            if (calmEl) calmEl.textContent = currentCalm + '%';
-
-            const stressEl = document.getElementById('snap-stress-pct');
-            if (stressEl) stressEl.textContent = `${currentStress}%`;
-
-            const recContent = document.getElementById('snap-recommendation-content');
-            if (recContent) recContent.textContent = liveEmotionState.tip;
-
-            if (modal) modal.classList.add('active');
-
-            showToast("Rasm yuklandi va sun'iy intellekt tomonidan to'liq tahlil qilindi!", "success");
+            // Natija varaqasini ochish
+            openSnapshotReportModalIfAvailable();
+            showToast("Inson yuzi muvaffaqiyatli aniqlandi va emotsiyalar tahlil qilindi!", "success");
         };
         img.src = e.target.result;
     };
