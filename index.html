@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=4.4">
+    <link rel="stylesheet" href="styles.css?v=4.5">
     <style>
         /* Critical styles for REI launch banner & button to bypass browser cache */
         .rei-launch-banner {
@@ -490,7 +490,7 @@
                                 <button class="btn btn-outline" id="btn-upload-photo-scan" onclick="document.getElementById('camera-photo-upload-input').click()">
                                     <span>📁 Rasm yuklash</span>
                                 </button>
-                                <input type="file" id="camera-photo-upload-input" accept="image/*" class="file-input-hidden" onchange="handlePhotoUploadForAnalysis(event)">
+                                <input type="file" id="camera-photo-upload-input" accept="image/*" style="display:none !important;" onchange="handlePhotoUploadForAnalysis(event)">
                             </div>
                             <div class="camera-privacy-note">
                                 🔒 <span><b>Maxfiylik kafolati:</b> Video oqimi to'liq qurilmangizning o'zida (brauzerda) qayta ishlanadi va serverlarga yuborilmaydi.</span>
@@ -1238,7 +1238,7 @@
     <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="data.js?v=4.4"></script>
-    <script src="app.js?v=4.4"></script>
+    <script src="data.js?v=4.5"></script>
+    <script src="app.js?v=4.5"></script>
 </body>
 </html>

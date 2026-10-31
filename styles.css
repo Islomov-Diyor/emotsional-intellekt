@@ -4082,25 +4082,45 @@ img {
     gap: 0.75rem;
     flex-wrap: wrap;
     align-items: center;
+    position: relative;
+    z-index: 5;
+}
+
+.camera-toolbar .btn {
+    position: relative;
+    z-index: 10;
+}
+
+#camera-photo-upload-input {
+    display: none !important;
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    z-index: -9999 !important;
 }
 
 .btn-shutter-main {
-    background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
     color: white !important;
-    font-weight: 700 !important;
-    font-size: 0.95rem !important;
-    padding: 0.65rem 1.35rem !important;
-    border-radius: 30px !important;
-    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45) !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.65rem 1.35rem;
+    border-radius: 30px;
+    box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45);
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
     animation: shutterGlow 2s infinite ease-in-out;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-shutter-main:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(37, 99, 235, 0.65) !important;
+    box-shadow: 0 6px 25px rgba(37, 99, 235, 0.65);
 }
 
 @keyframes shutterGlow {

@@ -299,7 +299,7 @@ window.renderPlatformMaterialCardHtml = function({
 // PLATFORMA KESHINI AVTOMATIK YANGILASH (CACHE BUSTER & FORCE SYNC v4.0)
 // Klient eski keshda qolib ketmasligi uchun avtomatik tozalash va yangilash
 // =============================================================================
-const APP_STORAGE_VERSION = 'rei_v4.4_20261031';
+const APP_STORAGE_VERSION = 'rei_v4.5_20261031';
 try {
     if (typeof localStorage !== 'undefined') {
         const storedVer = localStorage.getItem('rei_app_version');
@@ -2796,19 +2796,25 @@ window.toggleCamera = function() {
 };
 
 // 📸 ASOSIY AMAL: EKRANDAN YUZNI SURATGA OLISH VA FIKSATSIYA QILISH
-window.captureAndAnalyze = function() {
+window.captureAndAnalyze = async function() {
     const video = document.getElementById('camera-video');
     const screenElem = document.getElementById('camera-screen');
     const canvas = document.getElementById('camera-overlay-canvas');
 
-    if (!video || !cameraActive || video.readyState < 2) {
-        showToast("Suratga olish uchun avval kamerani yoqing!", "warning");
+    if (!cameraActive) {
+        showToast("Suratga olish uchun veb-kamera ulanmoqda...", "info");
+        await window.startCamera();
+        return;
+    }
+
+    if (!video || video.readyState < 2) {
+        showToast("Kamera tayyorlanmoqda, iltimos ozgina kuting...", "warning");
         return;
     }
 
     // Yuz kamerada aniqlanganligini tekshirish
     if (!hasDetectedHumanFace) {
-        showToast("⚠️ Kamerada inson yuzi aniqlanmadi! Iltimos, yuzingizni kameraga to'g'ri tuting va qayta urinib ko'ring.", "warning");
+        showToast("⚠️ Kamerada inson yuzi aniqlanmadi! Iltimos, yuzingizni kameraga to'g'ri tuting va qayta bosing.", "warning");
         return;
     }
 
