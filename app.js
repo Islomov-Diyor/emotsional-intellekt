@@ -299,7 +299,7 @@ window.renderPlatformMaterialCardHtml = function({
 // PLATFORMA KESHINI AVTOMATIK YANGILASH (CACHE BUSTER & FORCE SYNC v4.0)
 // Klient eski keshda qolib ketmasligi uchun avtomatik tozalash va yangilash
 // =============================================================================
-const APP_STORAGE_VERSION = 'rei_v4.0_20261030';
+const APP_STORAGE_VERSION = 'rei_v4.2_20261031';
 try {
     if (typeof localStorage !== 'undefined') {
         const storedVer = localStorage.getItem('rei_app_version');
@@ -1853,25 +1853,70 @@ function playCameraShutterSound() {
 }
 
 // =============================================================================
-// REAL-TIME COMPUTER VISION FACIAL EMOTION ANALYZER
+// REAL-TIME COMPUTER VISION FACIAL EMOTION ANALYZER (STABILIZED AI v4.0)
 // =============================================================================
 let analysisCanvas = null;
 let lastAnalysisPixels = null;
 let currentJoy = 65;
 let currentFocus = 78;
 let currentCalm = 75;
-let currentStress = 18;
-let liveEmotionState = {
-    type: 'neutral',
-    label: 'Xotirjamlik va ichki balans',
-    emoji: '😌',
-    tag: '😌 XOTIRJAM VA NEYTRAL',
-    color: '#00f0ff',
-    score: 84,
-    tip: "Yuz mushaklaringiz tinch va muvozanatli. Fikrni jamlash va o'rganish uchun qulay fursat."
+let currentStress = 16;
+let cameraFrozen = false;
+let frozenFrameCanvas = null;
+let smoothBoundingBox = { minX: 35, maxX: 125, minY: 18, maxY: 102 };
+
+// Stabilizatsiya va Gisterezis nazorati (pitirlash va tez sakrashlarni yo'qotish uchun)
+let candidateEmotionType = 'neutral';
+let candidateStreak = 0;
+const HYSTERESIS_MIN_STREAK = 4; // Kamida ~600-750ms barqaror tursa emotsiya yangilanadi
+let dominantEmotionType = 'neutral';
+
+const EMOTION_CONFIGS = {
+    smile: {
+        type: 'smile',
+        label: 'Quvonch va tabassum',
+        emoji: '😊',
+        tag: '😊 QUVOANCH VA TABASSUM',
+        color: '#10b981',
+        tip: "Yuzingizda samimiy tabassum va yuqori ijobiy hissiy ko'tarinkilik aniqlandi. Ushbu holat raqamli ta'limda ijodiy fikrlash, faollik va o'zaro hamkorlik uchun eng samarali vaqt hisoblanadi."
+    },
+    focus: {
+        type: 'focus',
+        label: 'Yuqori kognitiv diqqat',
+        emoji: '🎯',
+        tag: '🎯 DIQQAT JAMLANGAN',
+        color: '#6366f1',
+        tip: "Nigohingiz markazda va barqaror, kognitiv konsentratsiya me'yoridan yuqori. Murakkab pedagogik keyslar, amaliy mashg'ulotlar va nazorat testlarini yechish uchun eng maqbul holatdasiz."
+    },
+    neutral: {
+        type: 'neutral',
+        label: 'Xotirjamlik va ichki balans',
+        emoji: '😌',
+        tag: '😌 XOTIRJAM VA NEYTRAL',
+        color: '#06b6d4',
+        tip: "Yuz mushaklaringiz to'liq bo'shashgan, ichki psixo-emotsional muvozanat barqaror. Yangi ma'ruzalar va ko'rgazmali taqdimotlarni bir maromda tushunib o'zlashtirish tavsiya etiladi."
+    },
+    angry: {
+        type: 'angry',
+        label: "Asabiy zo'riqish va taranglik",
+        emoji: '⚡',
+        tag: '⚡ STRESS VA TARANGLIK',
+        color: '#ef4444',
+        tip: "Qoshlar o'rtasida zo'riqish va asabiy taranglik (charchoq) belgilari aniqlandi. 4-7-8 nafas mashqini bajaring (4 soniya nafas oling, 7 soniya ushlab turing, 8 soniya chiqaring) va ko'zlarga 2 daqiqa dam bering."
+    }
 };
 
-function analyzeVideoFrameForEmotions(source) {
+let liveEmotionState = {
+    type: 'neutral',
+    label: EMOTION_CONFIGS.neutral.label,
+    emoji: EMOTION_CONFIGS.neutral.emoji,
+    tag: EMOTION_CONFIGS.neutral.tag,
+    color: EMOTION_CONFIGS.neutral.color,
+    score: 84,
+    tip: EMOTION_CONFIGS.neutral.tip
+};
+
+function analyzeVideoFrameForEmotions(source, isSingleImage = false) {
     if (!source) return;
     if (source.tagName === 'VIDEO' && (source.readyState < 2 || source.videoWidth === 0)) return;
 
@@ -1886,22 +1931,21 @@ function analyzeVideoFrameForEmotions(source) {
     const frame = aCtx.getImageData(0, 0, 160, 120);
     const data = frame.data;
 
-    // 1. Locate Face Bounding Box using YCbCr skin locus
+    // 1. Yuz sohasini aniqlash (YCbCr teri rangi segmentatsiyasi)
     let minX = 160, maxX = 0, minY = 120, maxY = 0;
     let skinCount = 0;
 
-    for (let y = 15; y < 105; y += 2) {
-        for (let x = 20; x < 140; x += 2) {
+    for (let y = 12; y < 108; y += 2) {
+        for (let x = 16; x < 144; x += 2) {
             const idx = (y * 160 + x) * 4;
             const r = data[idx];
             const g = data[idx + 1];
             const b = data[idx + 2];
-            // YCbCr conversion
             const Y = 0.299 * r + 0.587 * g + 0.114 * b;
             const Cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b;
             const Cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
 
-            if (Cb >= 77 && Cb <= 130 && Cr >= 133 && Cr <= 175 && Y > 35) {
+            if (Cb >= 77 && Cb <= 130 && Cr >= 133 && Cr <= 175 && Y > 30) {
                 skinCount++;
                 if (x < minX) minX = x;
                 if (x > maxX) maxX = x;
@@ -1911,22 +1955,30 @@ function analyzeVideoFrameForEmotions(source) {
         }
     }
 
-    // Default centered face if skin cluster is too small (e.g. dark room)
-    if (skinCount < 120 || maxX - minX < 25 || maxY - minY < 30) {
+    if (skinCount < 100 || maxX - minX < 24 || maxY - minY < 28) {
         minX = 35; maxX = 125;
         minY = 18; maxY = 102;
     }
 
-    const faceW = maxX - minX;
-    const faceH = maxY - minY;
+    // Yuz chegarasini silliqlash (HUD overlay sakramay turishi uchun)
+    if (isSingleImage) {
+        smoothBoundingBox = { minX, maxX, minY, maxY };
+    } else {
+        smoothBoundingBox.minX += (minX - smoothBoundingBox.minX) * 0.25;
+        smoothBoundingBox.maxX += (maxX - smoothBoundingBox.maxX) * 0.25;
+        smoothBoundingBox.minY += (minY - smoothBoundingBox.minY) * 0.25;
+        smoothBoundingBox.maxY += (maxY - smoothBoundingBox.maxY) * 0.25;
+    }
 
-    // 2. MOUTH ZONE (Bottom 28% of face) - Smile & Teeth Detection
-    const mY1 = Math.round(minY + faceH * 0.65);
-    const mY2 = Math.round(minY + faceH * 0.92);
-    const mX1 = Math.round(minX + faceW * 0.22);
-    const mX2 = Math.round(minX + faceW * 0.78);
+    const faceW = Math.max(30, smoothBoundingBox.maxX - smoothBoundingBox.minX);
+    const faceH = Math.max(35, smoothBoundingBox.maxY - smoothBoundingBox.minY);
 
-    let mouthBrightnessSum = 0;
+    // 2. OG'IZ VA LAB SOHASI (Tabassum / Quvonch detektori)
+    const mY1 = Math.round(smoothBoundingBox.minY + faceH * 0.65);
+    const mY2 = Math.round(smoothBoundingBox.minY + faceH * 0.90);
+    const mX1 = Math.round(smoothBoundingBox.minX + faceW * 0.20);
+    const mX2 = Math.round(smoothBoundingBox.minX + faceW * 0.80);
+
     let mouthBrightnessMax = 0;
     let mouthBrightnessMin = 255;
     let mouthPixCount = 0;
@@ -1935,46 +1987,38 @@ function analyzeVideoFrameForEmotions(source) {
     for (let y = mY1; y < mY2; y += 2) {
         for (let x = mX1; x < mX2; x += 2) {
             const idx = (y * 160 + x) * 4;
-            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
-            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-            mouthBrightnessSum += lum;
+            const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
             if (lum > mouthBrightnessMax) mouthBrightnessMax = lum;
             if (lum < mouthBrightnessMin) mouthBrightnessMin = lum;
             mouthPixCount++;
 
-            // Horizontal gradient (mouth corners and teeth edges)
             if (x + 2 < mX2) {
                 const nIdx = (y * 160 + (x + 2)) * 4;
                 const nLum = 0.299 * data[nIdx] + 0.587 * data[nIdx + 1] + 0.114 * data[nIdx + 2];
-                if (Math.abs(lum - nLum) > 22) mouthEdgeCount++;
+                if (Math.abs(lum - nLum) > 20) mouthEdgeCount++;
             }
         }
     }
 
-    const mouthAvg = mouthPixCount > 0 ? mouthBrightnessSum / mouthPixCount : 100;
     const mouthContrast = mouthBrightnessMax - mouthBrightnessMin;
     const mouthEdgeDensity = mouthPixCount > 0 ? mouthEdgeCount / mouthPixCount : 0;
-    const smileIndicator = (mouthContrast / 140) * 0.5 + (mouthEdgeDensity * 2.5) * 0.5;
+    const smileMetric = Math.min(1, Math.max(0, (mouthContrast / 120) * 0.45 + (mouthEdgeDensity * 2.8) * 0.55));
 
-    // 3. GLABELLA / EYEBROW FURROW ZONE (Between Eyes and Forehead) - Anger / Frown Detection
-    const bY1 = Math.round(minY + faceH * 0.18);
-    const bY2 = Math.round(minY + faceH * 0.40);
-    const bX1 = Math.round(minX + faceW * 0.32);
-    const bX2 = Math.round(minX + faceW * 0.68);
+    // 3. QOSHLAR VA PESHONA O'RTASI (Glabella - Stress / Taranglik detektori)
+    const bY1 = Math.round(smoothBoundingBox.minY + faceH * 0.16);
+    const bY2 = Math.round(smoothBoundingBox.minY + faceH * 0.38);
+    const bX1 = Math.round(smoothBoundingBox.minX + faceW * 0.33);
+    const bX2 = Math.round(smoothBoundingBox.minX + faceW * 0.67);
 
     let browEdgeCount = 0;
-    let browBrightnessSum = 0;
     let browPixCount = 0;
 
     for (let y = bY1; y < bY2; y += 2) {
         for (let x = bX1; x < bX2; x += 2) {
             const idx = (y * 160 + x) * 4;
-            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
-            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-            browBrightnessSum += lum;
+            const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
             browPixCount++;
 
-            // Horizontal gradient between brows: frowning creates sharp vertical lines/furrows
             if (x + 2 < bX2) {
                 const nIdx = (y * 160 + (x + 2)) * 4;
                 const nLum = 0.299 * data[nIdx] + 0.587 * data[nIdx + 1] + 0.114 * data[nIdx + 2];
@@ -1984,11 +2028,11 @@ function analyzeVideoFrameForEmotions(source) {
     }
 
     const browEdgeDensity = browPixCount > 0 ? browEdgeCount / browPixCount : 0;
-    const frownIndicator = (browEdgeDensity * 3.2);
+    const frownMetric = Math.min(1, Math.max(0, browEdgeDensity * 3.6));
 
-    // 4. MOTION & STABILITY (DIQQAT)
+    // 4. HARAKAT TURG'UNLIGI VA KO'Z QARASHI (Diqqat va Konsentratsiya detektori)
     let motionDiff = 0;
-    if (lastAnalysisPixels) {
+    if (lastAnalysisPixels && !isSingleImage) {
         let diffSum = 0;
         let sampleCount = 0;
         for (let i = 0; i < data.length; i += 16) {
@@ -1999,94 +2043,117 @@ function analyzeVideoFrameForEmotions(source) {
     }
     lastAnalysisPixels = new Uint8ClampedArray(data);
 
-    // 5. DETERMINE EMOTION TARGETS BASED ON REAL FACE FEATURES
-    let targetJoy = 60;
-    let targetStress = 16;
-    let targetFocus = 78;
-    let targetCalm = 75;
-
-    // Check Frown / Anger / Stress (eyebrows pulled down / brow furrow wrinkles)
-    if (frownIndicator > 0.30 && frownIndicator >= smileIndicator * 0.75) {
-        const intensity = Math.min(1, (frownIndicator - 0.30) / 0.30);
-        targetStress = Math.round(78 + intensity * 18); // 78% - 96%
-        targetJoy = Math.round(20 - intensity * 10);    // 10% - 20%
-        targetCalm = Math.round(24 - intensity * 12);   // 12% - 24%
-        targetFocus = Math.round(68 + intensity * 6);   // 68% - 74%
-
-        liveEmotionState = {
-            type: 'angry',
-            label: "G'azab va kuchli taranglik",
-            emoji: '😠',
-            tag: '😠 JAHL / TARANGLIK ANIQLANDI',
-            color: '#ef4444',
-            score: targetStress,
-            tip: "Qoshlar chimirilgan va yuqori asabiy zo'riqish aniqlandi! Chuqur nafas oling (4-7-8 texnikasi) va hissiy tanaffus qiling."
-        };
+    // Ko'z sohasining ochiqligi va simmetriyasi
+    const eY1 = Math.round(smoothBoundingBox.minY + faceH * 0.30);
+    const eY2 = Math.round(smoothBoundingBox.minY + faceH * 0.46);
+    let eyeContrastSum = 0;
+    let eyeSamples = 0;
+    for (let y = eY1; y < eY2; y += 2) {
+        for (let x = Math.round(smoothBoundingBox.minX + faceW * 0.22); x < Math.round(smoothBoundingBox.minX + faceW * 0.78); x += 2) {
+            const idx = (y * 160 + x) * 4;
+            const lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+            if (x + 2 < 160) {
+                const nIdx = (y * 160 + (x + 2)) * 4;
+                const nLum = 0.299 * data[nIdx] + 0.587 * data[nIdx + 1] + 0.114 * data[nIdx + 2];
+                eyeContrastSum += Math.abs(lum - nLum);
+                eyeSamples++;
+            }
+        }
     }
-    // Check Smiling / Joy (teeth visible / wide mouth corners)
-    else if (smileIndicator > 0.38) {
-        const intensity = Math.min(1, (smileIndicator - 0.38) / 0.35);
-        targetJoy = Math.round(86 + intensity * 12); // 86% - 98%
-        targetCalm = Math.round(76 + intensity * 8);  // 76% - 84%
-        targetFocus = Math.round(75 + intensity * 7); // 75% - 82%
-        targetStress = Math.round(14 - intensity * 8); // 6% - 14%
+    const eyeOpenness = eyeSamples > 0 ? Math.min(1, (eyeContrastSum / eyeSamples) / 28) : 0.6;
 
-        liveEmotionState = {
-            type: 'smile',
-            label: 'Quvonch va tabassum',
-            emoji: '😊',
-            tag: '😊 TABASSUM ANIQLANDI',
-            color: '#10b981',
-            score: targetJoy,
-            tip: "Yuzingizda samimiy tabassum aniqlandi! Ijobiy kayfiyat raqamli ta'limda ishonch va ijodkorlikni oshiradi."
-        };
-    }
-    // Check Focus / Concentration (stable posture, direct camera gaze)
-    else if (motionDiff < 3.2 && frownIndicator < 0.28 && smileIndicator < 0.38) {
-        targetFocus = Math.round(88 + Math.random() * 5); // 88% - 93%
-        targetCalm = Math.round(82 + Math.random() * 4);  // 82% - 86%
-        targetJoy = 64;
-        targetStress = 14;
+    const focusMetric = Math.min(1, Math.max(0, (1 - Math.min(1, motionDiff / 3.0)) * 0.6 + eyeOpenness * 0.4));
+    const calmMetric = Math.min(1, Math.max(0, (1 - frownMetric) * 0.45 + (1 - Math.abs(smileMetric - 0.25)) * 0.35 + (1 - Math.min(1, motionDiff / 2.5)) * 0.20));
 
-        liveEmotionState = {
-            type: 'focus',
-            label: 'Yuqori kognitiv diqqat',
-            emoji: '🎯',
-            tag: '🎯 DIQQAT JAMLANGAN',
-            color: '#6366f1',
-            score: targetFocus,
-            tip: "Nigohingiz markazda va barqaror. Yangi va murakkab mavzularni o'rganish uchun eng qulay kognitiv holatdasiz."
-        };
+    // 5. ANIQ QOIDALAR ASOSIDA 4 TA KO'RSATKICHNI HISOBLASH (TASODIFIY RAQAMLARSIZ)
+    let rawCandidate = 'neutral';
+    let targetJoy = 62, targetStress = 12, targetFocus = 78, targetCalm = 84;
+
+    // 1-holat: Quvonch va tabassum
+    if (smileMetric > 0.35 && smileMetric > frownMetric * 1.15) {
+        rawCandidate = 'smile';
+        targetJoy = Math.round(76 + Math.min(22, smileMetric * 24));
+        targetCalm = Math.round(68 + Math.min(16, (1 - frownMetric) * 16));
+        targetFocus = Math.round(70 + Math.min(14, focusMetric * 15));
+        targetStress = Math.round(8 + Math.min(12, frownMetric * 14));
     }
-    // Neutral / Calm
+    // 2-holat: Asabiy zo'riqish va stress (qosh chimirilishi)
+    else if (frownMetric > 0.32 && frownMetric >= smileMetric * 0.9) {
+        rawCandidate = 'angry';
+        targetStress = Math.round(74 + Math.min(22, frownMetric * 25));
+        targetJoy = Math.max(8, Math.round(22 - frownMetric * 14));
+        targetCalm = Math.max(14, Math.round(28 - frownMetric * 16));
+        targetFocus = Math.round(64 + Math.min(12, focusMetric * 12));
+    }
+    // 3-holat: Kognitiv diqqat va konsentratsiya (turg'un nigoh va barqarorlik)
+    else if (focusMetric > 0.65 && frownMetric < 0.30 && smileMetric < 0.35) {
+        rawCandidate = 'focus';
+        targetFocus = Math.round(82 + Math.min(14, focusMetric * 15));
+        targetCalm = Math.round(76 + Math.min(12, calmMetric * 12));
+        targetJoy = Math.round(58 + Math.min(10, smileMetric * 12));
+        targetStress = Math.round(10 + Math.min(10, frownMetric * 12));
+    }
+    // 4-holat: Xotirjamlik va ichki balans (bo'shashgan yuz mushaklari)
     else {
-        targetCalm = Math.round(84 + Math.random() * 5);  // 84% - 89%
-        targetFocus = Math.round(76 + Math.random() * 4); // 76% - 80%
-        targetJoy = Math.round(62 + Math.random() * 4);   // 62% - 66%
-        targetStress = Math.round(15 + Math.random() * 3);// 15% - 18%
-
-        liveEmotionState = {
-            type: 'neutral',
-            label: 'Xotirjamlik va ichki balans',
-            emoji: '😌',
-            tag: '😌 XOTIRJAM VA NEYTRAL',
-            color: '#00f0ff',
-            score: targetCalm,
-            tip: "Yuz mushaklaringiz bo'shashgan va xotirjam. Darslar va topshiriqlarni bir maromda davom ettiring."
-        };
+        rawCandidate = 'neutral';
+        targetCalm = Math.round(80 + Math.min(15, calmMetric * 16));
+        targetFocus = Math.round(74 + Math.min(12, focusMetric * 12));
+        targetJoy = Math.round(60 + Math.min(10, smileMetric * 12));
+        targetStress = Math.round(9 + Math.min(9, frownMetric * 10));
     }
 
-    // Exponential Smoothing (Glide smoothly in ~250ms)
-    currentJoy = Math.round(currentJoy * 0.65 + targetJoy * 0.35);
-    currentFocus = Math.round(currentFocus * 0.65 + targetFocus * 0.35);
-    currentCalm = Math.round(currentCalm * 0.65 + targetCalm * 0.35);
-    currentStress = Math.round(currentStress * 0.65 + targetStress * 0.35);
+    // 6. GISTEREZIS FILTRI (Pitirlash va tez o'ynashni to'liq bartaraf etish)
+    if (isSingleImage) {
+        dominantEmotionType = rawCandidate;
+        candidateStreak = 999;
+    } else {
+        if (rawCandidate === candidateEmotionType) {
+            candidateStreak++;
+        } else {
+            candidateEmotionType = rawCandidate;
+            candidateStreak = 1;
+        }
+
+        if (candidateStreak >= HYSTERESIS_MIN_STREAK) {
+            dominantEmotionType = candidateEmotionType;
+        }
+    }
+
+    const cfg = EMOTION_CONFIGS[dominantEmotionType] || EMOTION_CONFIGS.neutral;
+    const dominantScore = dominantEmotionType === 'smile' ? targetJoy 
+                        : dominantEmotionType === 'angry' ? targetStress 
+                        : dominantEmotionType === 'focus' ? targetFocus 
+                        : targetCalm;
+
+    liveEmotionState = {
+        type: dominantEmotionType,
+        label: cfg.label,
+        emoji: cfg.emoji,
+        tag: cfg.tag,
+        color: cfg.color,
+        score: dominantScore,
+        tip: cfg.tip
+    };
+
+    // Silliq harakatlanuvchi o'rtacha (Exponential Moving Average)
+    if (isSingleImage) {
+        currentJoy = targetJoy;
+        currentFocus = targetFocus;
+        currentCalm = targetCalm;
+        currentStress = targetStress;
+    } else {
+        currentJoy = Math.round(currentJoy + (targetJoy - currentJoy) * 0.20);
+        currentFocus = Math.round(currentFocus + (targetFocus - currentFocus) * 0.20);
+        currentCalm = Math.round(currentCalm + (targetCalm - currentCalm) * 0.20);
+        currentStress = Math.round(currentStress + (targetStress - currentStress) * 0.20);
+    }
 
     renderTelemetryToDOM();
 }
 
 function renderTelemetryToDOM() {
     const reiScore = Math.round((currentJoy * 0.35) + (currentFocus * 0.30) + (currentCalm * 0.35) - (currentStress * 0.20) + 10);
+    const clampedScore = Math.min(98, Math.max(40, reiScore));
 
     const barJoy = document.getElementById('bar-fill-joy');
     const lblJoy = document.getElementById('bar-val-joy');
@@ -2109,7 +2176,21 @@ function renderTelemetryToDOM() {
     if (lblStress) lblStress.textContent = currentStress + '%';
 
     const reiElem = document.getElementById('camera-rei-score');
-    if (reiElem) reiElem.textContent = Math.min(98, Math.max(40, reiScore));
+    if (reiElem) reiElem.textContent = clampedScore;
+
+    const gradeElem = document.getElementById('camera-rei-grade');
+    if (gradeElem) {
+        if (clampedScore >= 80) {
+            gradeElem.textContent = "A'lo daraja";
+            gradeElem.style.color = "var(--success)";
+        } else if (clampedScore >= 65) {
+            gradeElem.textContent = "Barqaror";
+            gradeElem.style.color = "var(--primary-600)";
+        } else {
+            gradeElem.textContent = "Diqqat talab";
+            gradeElem.style.color = "var(--warning)";
+        }
+    }
 
     const domEmoji = document.getElementById('dominant-emoji');
     const domTitle = document.getElementById('dominant-title');
@@ -2130,7 +2211,7 @@ function renderTelemetryToDOM() {
 }
 
 // Draw futuristic AI facial scanning geometry on canvas with dynamic emotion-adaptive coloring
-function drawFaceMeshHUD(ctx, width, height, time) {
+function drawFaceMeshHUD(ctx, width, height, time, isStatic = false) {
     ctx.clearRect(0, 0, width, height);
 
     const cx = width / 2;
@@ -2138,8 +2219,10 @@ function drawFaceMeshHUD(ctx, width, height, time) {
     const faceW = width * 0.44;
     const faceH = height * 0.62;
 
-    const pulse = Math.sin(time * 0.003) * 2;
-    const scanY = (Math.sin(time * 0.002) * 0.5 + 0.5) * faceH + (cy - faceH / 2);
+    const pulse = isStatic ? 0 : Math.sin(time * 0.003) * 2;
+    const scanY = isStatic 
+        ? cy 
+        : (Math.sin(time * 0.002) * 0.5 + 0.5) * faceH + (cy - faceH / 2);
 
     const boxX1 = cx - faceW / 2 + pulse;
     const boxY1 = cy - faceH / 2 + pulse;
@@ -2153,7 +2236,7 @@ function drawFaceMeshHUD(ctx, width, height, time) {
     ctx.strokeStyle = themeColor;
     ctx.lineWidth = 2.5;
     ctx.shadowColor = themeColor;
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = isStatic ? 8 : 12;
 
     // Top-Left corner
     ctx.beginPath();
@@ -2183,17 +2266,19 @@ function drawFaceMeshHUD(ctx, width, height, time) {
     ctx.lineTo(boxX2, boxY2 - cornerLen);
     ctx.stroke();
 
-    // Scanning laser line with dynamic color
-    const laserGrad = ctx.createLinearGradient(boxX1, scanY, boxX2, scanY);
-    laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    laserGrad.addColorStop(0.5, themeColor);
-    laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.strokeStyle = laserGrad;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(boxX1, scanY);
-    ctx.lineTo(boxX2, scanY);
-    ctx.stroke();
+    // Scanning laser line
+    if (!isStatic) {
+        const laserGrad = ctx.createLinearGradient(boxX1, scanY, boxX2, scanY);
+        laserGrad.addColorStop(0, 'rgba(0,0,0,0)');
+        laserGrad.addColorStop(0.5, themeColor);
+        laserGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.strokeStyle = laserGrad;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(boxX1, scanY);
+        ctx.lineTo(boxX2, scanY);
+        ctx.stroke();
+    }
 
     // Corner alignment dots
     ctx.fillStyle = themeColor;
@@ -2202,7 +2287,7 @@ function drawFaceMeshHUD(ctx, width, height, time) {
     ctx.fillRect(boxX1 - 2, boxY2 - 3, 5, 5);
     ctx.fillRect(boxX2 - 3, boxY2 - 3, 5, 5);
 
-    // Center subtle crosshairs
+    // Center crosshairs
     ctx.strokeStyle = themeColor;
     ctx.globalAlpha = 0.4;
     ctx.lineWidth = 1;
@@ -2212,12 +2297,14 @@ function drawFaceMeshHUD(ctx, width, height, time) {
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    // Glowing Real-Time Emotion Status Pill
-    const tagText = liveEmotionState.tag || 'AI EMOTIONAL SCANNER: ACTIVE';
+    // Real-Time Emotion Status Pill
+    const tagText = isStatic 
+        ? `🔒 ${liveEmotionState.tag} (FIKSATSIYA)`
+        : (liveEmotionState.tag || 'AI EMOTIONAL SCANNER: ACTIVE');
     ctx.font = 'bold 12px monospace';
     const tagWidth = ctx.measureText(tagText).width + 24;
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
     ctx.strokeStyle = themeColor;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -2248,6 +2335,12 @@ function startCameraScanLoop() {
     function loop(time) {
         if (!cameraActive) return;
 
+        // Agar natija fiksatsiya qilingan (to'xtatilgan) bo'lsa, tahlil va harakat to'xtatiladi
+        if (cameraFrozen) {
+            cameraAnimId = requestAnimationFrame(loop);
+            return;
+        }
+
         // Sync canvas resolution with display
         if (canvas.width !== video.clientWidth || canvas.height !== video.clientHeight) {
             canvas.width = video.clientWidth || 640;
@@ -2259,7 +2352,7 @@ function startCameraScanLoop() {
             analyzeVideoFrameForEmotions(video);
         }
 
-        drawFaceMeshHUD(ctx, canvas.width, canvas.height, time);
+        drawFaceMeshHUD(ctx, canvas.width, canvas.height, time, false);
         cameraScanFrame++;
 
         cameraAnimId = requestAnimationFrame(loop);
@@ -2267,6 +2360,51 @@ function startCameraScanLoop() {
 
     cameraAnimId = requestAnimationFrame(loop);
 }
+
+// ⏸️ NATIJANI TO'XTATISH VA FIKSATSIYA QILISH (FREEZE MODE)
+window.toggleFreezeAnalysis = function() {
+    if (!cameraActive) {
+        showToast("Fiksatsiya qilish uchun avval kamerani yoqing!", "warning");
+        return;
+    }
+
+    cameraFrozen = !cameraFrozen;
+    const btn = document.getElementById('btn-freeze-camera');
+    const btnText = document.getElementById('btn-freeze-text');
+    const chip = document.getElementById('telemetry-mode-chip');
+    const statusLabel = document.getElementById('camera-status-label');
+    const statusBadge = document.getElementById('camera-status-badge');
+    const canvas = document.getElementById('camera-overlay-canvas');
+
+    if (cameraFrozen) {
+        if (btnText) btnText.innerHTML = '▶️ Jonli skanerni davom ettirish';
+        if (btn) {
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-success');
+        }
+        if (chip) chip.textContent = '⏸️ Natija fiksatsiyalangan';
+        if (statusLabel) statusLabel.textContent = "⏸️ Natija to'xtatildi";
+        if (statusBadge) statusBadge.classList.add('frozen');
+
+        // Draw static freeze overlay
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            drawFaceMeshHUD(ctx, canvas.width, canvas.height, 1200, true);
+        }
+
+        showToast("Natija to'xtatildi va fiksatsiya qilindi! Ko'rsatkichlarni bemalol o'rganishingiz mumkin.", "info");
+    } else {
+        if (btnText) btnText.innerHTML = '⏸️ Natijani fiksatsiya qilish';
+        if (btn) {
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+        }
+        if (chip) chip.textContent = 'Jonli tahlil';
+        if (statusLabel) statusLabel.textContent = '🟢 Jonli skanerlash faol';
+        if (statusBadge) statusBadge.classList.remove('frozen');
+        showToast("Jonli skanerlash davom ettirildi.", "success");
+    }
+};
 
 window.startCamera = async function() {
     const video = document.getElementById('camera-video');
@@ -2276,6 +2414,7 @@ window.startCamera = async function() {
     const statusLabel = document.getElementById('camera-status-label');
     const btnText = document.getElementById('btn-camera-text');
     const snapBtn = document.getElementById('btn-snapshot-analyze');
+    const freezeBtn = document.getElementById('btn-freeze-camera');
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         showToast("Brauzeringiz kamerani qo'llab-quvvatlamaydi yoki xavfsiz (HTTPS/localhost) ulanish mavjud emas. 'Rasm yuklash' orqali tekshirishingiz mumkin.", "danger");
@@ -2301,6 +2440,8 @@ window.startCamera = async function() {
 
         cameraStream = stream;
         cameraActive = true;
+        cameraFrozen = false;
+
         if (video) {
             video.srcObject = stream;
             video.muted = true;
@@ -2315,13 +2456,25 @@ window.startCamera = async function() {
 
         if (placeholder) placeholder.classList.add('hidden');
         if (hud) hud.classList.remove('hidden');
-        if (statusBadge) statusBadge.classList.add('active');
+        if (statusBadge) {
+            statusBadge.classList.add('active');
+            statusBadge.classList.remove('frozen');
+        }
         if (statusLabel) statusLabel.textContent = "🟢 Jonli skanerlash faol";
-        if (btnText) btnText.textContent = "⏹️ Kamerani to'xtatish";
+        if (btnText) btnText.textContent = "⏹️ Kamerani o'chirish";
         if (snapBtn) snapBtn.removeAttribute('disabled');
 
+        if (freezeBtn) {
+            freezeBtn.style.display = 'inline-flex';
+            freezeBtn.removeAttribute('disabled');
+            const freezeText = document.getElementById('btn-freeze-text');
+            if (freezeText) freezeText.innerHTML = '⏸️ Natijani fiksatsiya qilish';
+            freezeBtn.classList.remove('btn-success');
+            freezeBtn.classList.add('btn-warning');
+        }
+
         startCameraScanLoop();
-        showToast("Veb-kamera ulandi! Jonli AI emotsional skaner ishga tushdi.", "success");
+        showToast("Veb-kamera ulandi! Jonli barqaror AI skaner ishga tushdi.", "success");
     } catch (err) {
         console.error("Camera access error:", err);
         let msg = "Kameraga ulanib bo'lmadi. ";
@@ -2345,6 +2498,7 @@ window.stopCamera = function() {
         cameraStream = null;
     }
     cameraActive = false;
+    cameraFrozen = false;
 
     if (cameraAnimId) {
         cancelAnimationFrame(cameraAnimId);
@@ -2360,14 +2514,22 @@ window.stopCamera = function() {
     const statusLabel = document.getElementById('camera-status-label');
     const btnText = document.getElementById('btn-camera-text');
     const snapBtn = document.getElementById('btn-snapshot-analyze');
+    const freezeBtn = document.getElementById('btn-freeze-camera');
     const canvas = document.getElementById('camera-overlay-canvas');
 
     if (placeholder) placeholder.classList.remove('hidden');
     if (hud) hud.classList.add('hidden');
-    if (statusBadge) statusBadge.classList.remove('active');
+    if (statusBadge) {
+        statusBadge.classList.remove('active');
+        statusBadge.classList.remove('frozen');
+    }
     if (statusLabel) statusLabel.textContent = "Kamera o'chiq";
     if (btnText) btnText.textContent = "📹 Kamerani yoqish";
     if (snapBtn) snapBtn.setAttribute('disabled', 'true');
+    if (freezeBtn) {
+        freezeBtn.setAttribute('disabled', 'true');
+        freezeBtn.style.display = 'none';
+    }
 
     if (canvas) {
         const ctx = canvas.getContext('2d');
@@ -2391,7 +2553,7 @@ window.captureAndAnalyze = function() {
     const imgPreview = document.getElementById('snapshot-preview-img');
     const timestampElem = document.getElementById('snapshot-timestamp');
 
-    if (!video || !cameraActive) {
+    if (!video || (!cameraActive && !lastCapturedDataUrl)) {
         showToast("Suratga olish uchun avval kamerani yoqing!", "warning");
         return;
     }
@@ -2400,30 +2562,30 @@ window.captureAndAnalyze = function() {
 
     // Visual camera shutter flash effect
     if (screenElem) {
-        screenElem.style.filter = 'brightness(2.5)';
+        screenElem.style.filter = 'brightness(2.2)';
         setTimeout(() => { screenElem.style.filter = ''; }, 150);
     }
 
-    // Capture snapshot frame to canvas
-    const snapCanvas = document.createElement('canvas');
-    snapCanvas.width = video.videoWidth || 640;
-    snapCanvas.height = video.videoHeight || 480;
-    const ctx = snapCanvas.getContext('2d');
+    if (cameraActive && video.videoWidth > 0) {
+        const snapCanvas = document.createElement('canvas');
+        snapCanvas.width = video.videoWidth || 640;
+        snapCanvas.height = video.videoHeight || 480;
+        const ctx = snapCanvas.getContext('2d');
 
-    // Video is mirrored for user, mirror canvas image for natural photo look
-    ctx.translate(snapCanvas.width, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+        ctx.translate(snapCanvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
 
-    lastCapturedDataUrl = snapCanvas.toDataURL('image/png');
+        lastCapturedDataUrl = snapCanvas.toDataURL('image/png');
+    }
 
-    if (imgPreview) imgPreview.src = lastCapturedDataUrl;
+    if (imgPreview && lastCapturedDataUrl) {
+        imgPreview.src = lastCapturedDataUrl;
+    }
 
     const now = new Date();
-    const timeStr = now.toLocaleTimeString();
-    if (timestampElem) timestampElem.textContent = timeStr;
+    if (timestampElem) timestampElem.textContent = now.toLocaleTimeString();
 
-    // Use real computer vision analyzed metrics at this exact moment
     const joyPct = currentJoy;
     const focusPct = currentFocus;
     const calmPct = currentCalm;
@@ -2455,7 +2617,7 @@ window.captureAndAnalyze = function() {
     if (recContent) recContent.textContent = liveEmotionState.tip;
 
     if (modal) modal.classList.add('active');
-    showToast("Surat olindi va to'liq emotsional tahlil qilindi!", "success");
+    showToast("Surat olindi va to'liq emotsional diagnostika hisoboti tayyorlandi!", "success");
 };
 
 window.closeCameraSnapshotModal = function() {
@@ -2470,17 +2632,19 @@ window.copySnapshotAnalysis = function() {
     const calm = document.getElementById('snap-calm-pct')?.textContent || '78%';
     const stress = document.getElementById('snap-stress-pct')?.textContent || '14%';
     const time = document.getElementById('snapshot-timestamp')?.textContent || '';
+    const dominantLabel = liveEmotionState.label || 'Barqaror';
 
-    const text = `📊 RAQAMLI EMOTIONAL INTELLEKT (REI) DIAGNOSTIKA NATIJASI
+    const text = `📊 RAQAMLI EMOTSIONAL INTELLEKT (REI) DIAGNOSTIKA HISOBOTI
 Sana/Vaqt: ${time}
+Hukmron emotsional holat: ${dominantLabel}
 --------------------------------------------------
-Umumiy REI Indeksi: ${score}/100 (A'lo)
-• Quvonch va Ijobiy kayfiyat: ${joy}
-• Kognitiv diqqat / Fokus: ${focus}
-• Psixo-emotsional barqarorlik: ${calm}
-• Asabiy zo'riqish (Stress): ${stress}
+Umumiy REI Indeksi: ${score}/100
+• 😊 Quvonch va Ijobiy kayfiyat: ${joy}
+• 🎯 Kognitiv diqqat / Fokus: ${focus}
+• 😌 Psixo-emotsional barqarorlik: ${calm}
+• ⚡ Asabiy zo'riqish (Stress): ${stress}
 
-💡 Tavsiya: Raqamli muhitda diqqatni to'plash va ta'limiy topshiriqlarni yuqori samaradorlik bilan bajarish uchun eng maqbul fiziologik va emotsional balansdasiz.`;
+💡 Tavsiya: ${liveEmotionState.tip}`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
@@ -2500,14 +2664,14 @@ window.downloadSnapshotImage = function() {
     }
     const a = document.createElement('a');
     a.href = lastCapturedDataUrl;
-    a.download = `ei_emotion_scan_${Date.now()}.png`;
+    a.download = `rei_emotion_scan_${Date.now()}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     showToast("Surat kompyuteringizga yuklab olindi!", "success");
 };
 
-// Handle uploaded photo for EI analysis (webcam fallback)
+// Handle uploaded photo for EI analysis (Rasm yuklab aniq tahlil qilish)
 window.handlePhotoUploadForAnalysis = function(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
@@ -2516,7 +2680,6 @@ window.handlePhotoUploadForAnalysis = function(event) {
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-            // Stop active webcam if running
             if (cameraActive) window.stopCamera();
 
             const canvas = document.getElementById('camera-overlay-canvas');
@@ -2525,12 +2688,17 @@ window.handlePhotoUploadForAnalysis = function(event) {
             const statusBadge = document.getElementById('camera-status-badge');
             const statusLabel = document.getElementById('camera-status-label');
             const snapBtn = document.getElementById('btn-snapshot-analyze');
+            const chip = document.getElementById('telemetry-mode-chip');
 
             if (placeholder) placeholder.classList.add('hidden');
             if (hud) hud.classList.remove('hidden');
-            if (statusBadge) statusBadge.classList.add('active');
+            if (statusBadge) {
+                statusBadge.classList.add('active');
+                statusBadge.classList.add('frozen');
+            }
             if (statusLabel) statusLabel.textContent = "📁 Yuklangan rasm tahlili";
             if (snapBtn) snapBtn.removeAttribute('disabled');
+            if (chip) chip.textContent = "📁 Rasm tahlili (Fiksatsiyalangan)";
 
             if (canvas) {
                 const screen = document.getElementById('camera-screen');
@@ -2542,11 +2710,11 @@ window.handlePhotoUploadForAnalysis = function(event) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                // Run real computer vision analysis on uploaded image
-                analyzeVideoFrameForEmotions(img);
+                // Deterministic real computer vision analysis on uploaded image
+                analyzeVideoFrameForEmotions(img, true);
 
                 // Overlay face mesh geometry on photo with detected color
-                drawFaceMeshHUD(ctx, canvas.width, canvas.height, 1200);
+                drawFaceMeshHUD(ctx, canvas.width, canvas.height, 1200, true);
 
                 lastCapturedDataUrl = canvas.toDataURL('image/png');
             }
@@ -2585,11 +2753,12 @@ window.handlePhotoUploadForAnalysis = function(event) {
 
             if (modal) modal.classList.add('active');
 
-            showToast("Rasm yuklandi va sun'iy intellekt tahlili yakunlandi!", "success");
+            showToast("Rasm yuklandi va sun'iy intellekt tomonidan to'liq tahlil qilindi!", "success");
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+    event.target.value = '';
 };
 
 function initDetection() {
