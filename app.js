@@ -221,7 +221,7 @@ window.renderPlatformMaterialCardHtml = function({
     slotNumber = 1
 }) {
     const isAdmin = typeof AdminAuth !== 'undefined' && AdminAuth.isAdmin();
-    const safeTitleEscaped = (topicTitle || 'Mavzu').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    const safeTitleEscaped = (topicTitle || 'Mavzu').replace(/'/g, "\'").replace(/"/g, '&quot;');
     const safeNameEscaped = (fileName || topicTitle).replace(/"/g, '&quot;');
     const extLower = (ext || 'docx').toLowerCase();
     const dCount = downloadsCount || 50;
@@ -230,7 +230,10 @@ window.renderPlatformMaterialCardHtml = function({
         : (fileSize || '927.7 KB');
     const thumbnailUrl = driveId 
         ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w800` 
-        : generateDocumentCoverSvg(topicTitle, extLower, slotNumber, plan);
+        : generateDocumentCoverSvg(topicTitle, extLower, slotNumber);
+
+    const isTest = (categoryBadge && (categoryBadge.includes("Test") || categoryBadge.includes("Savol"))) || 
+                   (topicTitle && topicTitle.toLowerCase().includes("test"));
 
     return `
         <div class="file-slot-card gdrive-slot-card has-file">
@@ -243,6 +246,7 @@ window.renderPlatformMaterialCardHtml = function({
                 <span class="slot-badge-top-right file-ext-${extLower}">${extLower.toUpperCase()}</span>
             </div>
 
+            ${isTest ? `
             <div class="slot-content-body">
                 <div class="slot-subject-label">${subj}</div>
                 <h4 class="slot-title" title="${safeTitleEscaped}">${topicTitle}</h4>
@@ -255,8 +259,9 @@ window.renderPlatformMaterialCardHtml = function({
                     <span>Yuklab olindi: <b id="stat-count-${id}">${dCount}</b> marta</span>
                 </div>
             </div>
+            ` : ''}
 
-            <div class="slot-card-actions">
+            <div class="slot-card-actions" style="${isTest ? '' : 'padding: 1rem 1.15rem 1.15rem;'}">
                 <button class="btn btn-primary btn-slot-download-main" onclick="fileManager.downloadFile('${id}')" title="Google Diskdan ochish va yuklab olish">
                     <span>⬇️ Yuklab olish</span>
                 </button>
@@ -274,7 +279,7 @@ window.renderPlatformMaterialCardHtml = function({
 // PLATFORMA KESHINI AVTOMATIK YANGILASH (CACHE BUSTER & FORCE SYNC v4.0)
 // Klient eski keshda qolib ketmasligi uchun avtomatik tozalash va yangilash
 // =============================================================================
-const APP_STORAGE_VERSION = 'rei_v4.8_20261102';
+const APP_STORAGE_VERSION = 'rei_v4.9_20261102';
 try {
     if (typeof localStorage !== 'undefined') {
         const storedVer = localStorage.getItem('rei_app_version');
