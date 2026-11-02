@@ -87,53 +87,11 @@ function parseGoogleDriveUrl(url) {
     };
 }
 
-function generateDocumentCoverSvg(title = 'Mavzu taqdimoti', ext = 'docx', slotNumber = 1, planLines = null) {
-    const cleanTitle = (title || 'Mavzu')
+function generateDocumentCoverSvg(title = 'Mavzu taqdimoti', ext = 'docx', slotNumber = 1) {
+    const cleanTitle = (title || 'O\'quv materiali')
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
-
-    // Standard curriculum outline by topic slot
-    const defaultPlans = {
-        1: [
-            "1. Konfliktologiya fani predmeti va asosiy vazifalari",
-            "2. Pedagogik konfliktlarda muloqotning ahamiyati",
-            "3. Konflikt tushunchasining ilmiy talqinlari",
-            "4. Muloqot jarayonida konfliktlarning paydo bo'lishi",
-            "5. Boshlang'ich sinf o'quvchilarida muloqot madaniyati",
-            "6. Xalqaro ta'limda konfliktalogiya fani rivoji"
-        ],
-        14: [
-            "14.1. Konflikt tushunchasi, turlari va rivojlanish bosqichlari",
-            "14.2. Oiladagi konfliktlar va ularning bolaga ta'siri",
-            "14.3. Sinf jamoasidagi konfliktlar",
-            "14.4. Konfliktlarni hal etish strategiyalari",
-            "14.5. Konfliktlarni hal etish texnologiyalari",
-            "14.6. Konfliktlar profilaktikasi va konstruktiv yechimlar"
-        ],
-        15: [
-            "15.1. Sinf rahbari faoliyatining mohiyati va asosiy vazifalari",
-            "15.2. Sinf rahbari — konfliktlar bo'yicha vositachi",
-            "15.3. Sinf rahbarining kasbiy-shaxsiy sifatlari",
-            "15.4. Sinf rahbarining ish rejasi va hujjatlari",
-            "15.5. Sinf rahbarining oila, o'quvchilar va mutaxassislar bilan hamkorligi",
-            "15.6. Sinf jamoasini shakllantirish va tarbiyaviy soatlar"
-        ]
-    };
-
-    const lines = planLines || defaultPlans[slotNumber] || [
-        `1. ${cleanTitle}ning nazariy asoslari va mohiyati`,
-        `2. Boshlang'ich ta'limda pedagogik jarayonni tashkil etish`,
-        `3. O'quvchilarning emotsional intellektini rivojlantirish`,
-        `4. Amaliy metodlar va interaktiv texnologiyalar`,
-        `5. Nizolarning oldini olish va samarali yechimlar`,
-        `6. Xalqaro tajriba va pedagogik tavsiyalar`
-    ];
-
-    const planXml = lines.slice(0, 6).map((line, i) => {
-        const y = 175 + (i * 28);
-        return `<text x="75" y="${y}" font-family="'Times New Roman', Times, serif" font-size="15" fill="#1e293b" font-weight="500">${line.replace(/&/g, '&amp;')}</text>`;
-    }).join('\n');
 
     const extLower = (ext || 'docx').toLowerCase();
 
@@ -142,82 +100,101 @@ function generateDocumentCoverSvg(title = 'Mavzu taqdimoti', ext = 'docx', slotN
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="100%" height="100%">
         <defs>
             <linearGradient id="slideGrad_${slotNumber}" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#1e293b"/>
-                <stop offset="50%" stop-color="#0f172a"/>
-                <stop offset="100%" stop-color="#18181b"/>
+                <stop offset="0%" stop-color="#0f172a"/>
+                <stop offset="55%" stop-color="#1e1b4b"/>
+                <stop offset="100%" stop-color="#0369a1"/>
             </linearGradient>
-            <linearGradient id="orangeGlow_${slotNumber}" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#ea580c"/>
-                <stop offset="100%" stop-color="#f97316"/>
+            <linearGradient id="accentGlow_${slotNumber}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#6366f1"/>
             </linearGradient>
             <filter id="slideShadow_${slotNumber}" x="-5%" y="-5%" width="110%" height="110%">
-                <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(0,0,0,0.3)"/>
+                <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(0,0,0,0.35)"/>
             </filter>
         </defs>
         <rect width="800" height="480" fill="#090d16"/>
-        <rect x="25" y="18" width="750" height="444" rx="12" fill="url(#slideGrad_${slotNumber})" stroke="#334155" stroke-width="2" filter="url(#slideShadow_${slotNumber})"/>
+        <rect x="25" y="18" width="750" height="444" rx="14" fill="url(#slideGrad_${slotNumber})" stroke="#334155" stroke-width="2" filter="url(#slideShadow_${slotNumber})"/>
         
         <!-- Top slide accent bar -->
-        <rect x="25" y="18" width="750" height="8" rx="4" fill="url(#orangeGlow_${slotNumber})"/>
+        <rect x="25" y="18" width="750" height="8" rx="4" fill="url(#accentGlow_${slotNumber})"/>
         
         <!-- PPT Badge -->
-        <rect x="55" y="44" width="125" height="30" rx="6" fill="#ea580c"/>
-        <text x="117" y="64" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">📽️ SLAYD PREVYU</text>
+        <rect x="55" y="46" width="170" height="32" rx="8" fill="rgba(56, 189, 248, 0.15)" stroke="#38bdf8" stroke-width="1.5"/>
+        <text x="140" y="68" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#38bdf8" text-anchor="middle">📽️ SLAYD TAQDIMOTI</text>
         
-        <text x="55" y="112" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#ea580c" font-weight="700" letter-spacing="1">
-            RAQAMLI EMOTIONAL INTELLEKT • TAQDIMOT
-        </text>
-        <text x="55" y="152" font-family="'Segoe UI', Roboto, sans-serif" font-size="21" fill="#ffffff" font-weight="700">
-            ${cleanTitle.length > 52 ? cleanTitle.substring(0, 50) + '...' : cleanTitle}
+        <!-- Department / Course subtitle -->
+        <text x="400" y="170" font-family="'Segoe UI', Roboto, sans-serif" font-size="15" fill="#93c5fd" font-weight="600" letter-spacing="2" text-anchor="middle">
+            RAQAMLI EMOTIONAL INTELLEKT
         </text>
         
-        <line x1="55" y1="182" x2="745" y2="182" stroke="#334155" stroke-width="1.5"/>
+        <!-- Main Presentation Title -->
+        <text x="400" y="240" font-family="'Segoe UI', Roboto, sans-serif" font-size="38" fill="#ffffff" font-weight="800" text-anchor="middle">
+            ${cleanTitle}
+        </text>
         
-        ${lines.slice(0, 5).map((l, i) => `
-            <circle cx="70" cy="${218 + (i * 38)}" r="5" fill="#f97316"/>
-            <text x="90" y="${223 + (i * 38)}" font-family="'Segoe UI', Roboto, sans-serif" font-size="15" fill="#e2e8f0" font-weight="500">${l.replace(/&/g, '&amp;')}</text>
-        `).join('')}
+        <line x1="260" y1="280" x2="540" y2="280" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
         
-        <!-- Bottom bar with slide counter and author -->
-        <rect x="25" y="420" width="750" height="42" fill="#0f172a" rx="0"/>
-        <text x="55" y="446" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#94a3b8">Boshlang'ich ta'lim kafedrasi • Ko'rgazmali slaydlar</text>
-        <text x="740" y="446" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#f97316" font-weight="700" text-anchor="end">15 ta slayd</text>
+        <text x="400" y="325" font-family="'Segoe UI', Roboto, sans-serif" font-size="16" fill="#cbd5e1" font-weight="500" text-anchor="middle">
+            Boshlang'ich ta'lim kafedrasi • Ko'rgazmali taqdimot
+        </text>
+        
+        <!-- Bottom bar -->
+        <rect x="25" y="420" width="750" height="42" fill="#090d16" opacity="0.8"/>
+        <text x="55" y="446" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#94a3b8">Format: PPTX • 16:9 HD Slaydlar</text>
+        <text x="740" y="446" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#38bdf8" font-weight="700" text-anchor="end">Google Disk resursi</text>
     </svg>`;
         return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     }
 
+    // Modern academic document cover (DOCX / DOC / PDF)
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="100%" height="100%">
         <defs>
-            <linearGradient id="paperGrad_${slotNumber}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <linearGradient id="docGrad_${slotNumber}" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stop-color="#ffffff"/>
-                <stop offset="100%" stop-color="#fdfdfd"/>
+                <stop offset="100%" stop-color="#f8fafc"/>
             </linearGradient>
             <filter id="docShadow_${slotNumber}" x="-5%" y="-5%" width="110%" height="110%">
-                <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.08)"/>
+                <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="rgba(0,0,0,0.08)"/>
             </filter>
         </defs>
-        <rect width="800" height="480" fill="#f8fafc"/>
+        <rect width="800" height="480" fill="#f1f5f9"/>
         
-        <!-- White A4 Sheet representation -->
-        <rect x="35" y="18" width="730" height="444" rx="4" fill="url(#paperGrad_${slotNumber})" stroke="#e2e8f0" stroke-width="1.5" filter="url(#docShadow_${slotNumber})"/>
+        <!-- A4 Sheet representation -->
+        <rect x="35" y="18" width="730" height="444" rx="8" fill="url(#docGrad_${slotNumber})" stroke="#cbd5e1" stroke-width="2" filter="url(#docShadow_${slotNumber})"/>
         
-        <!-- Document Title -->
-        <text x="400" y="72" font-family="'Times New Roman', Times, serif" font-size="20" fill="#0f172a" font-weight="700" text-anchor="middle">
-            ${cleanTitle.length > 60 ? cleanTitle.substring(0, 58) + '...' : cleanTitle}
+        <!-- Top accent bar -->
+        <rect x="35" y="18" width="730" height="6" rx="3" fill="#2563eb"/>
+        
+        <!-- Header -->
+        <text x="400" y="70" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" fill="#64748b" font-weight="700" letter-spacing="1.5" text-anchor="middle">
+            RAQAMLI EMOTSIONAL INTELLEKT PLATFORMASI
         </text>
         
-        <!-- Section: Reja -->
-        <text x="400" y="118" font-family="'Times New Roman', Times, serif" font-size="17" fill="#0f172a" font-weight="700" text-anchor="middle">
-            Reja:
+        <!-- Category Pill -->
+        <rect x="325" y="95" width="150" height="28" rx="14" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.2"/>
+        <text x="400" y="114" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">
+            O'QUV MATERIALLARI
         </text>
         
-        <!-- Reja lines -->
-        ${planXml}
+        <!-- Main Document Title -->
+        <text x="400" y="215" font-family="'Times New Roman', Times, serif" font-size="38" fill="#0f172a" font-weight="700" text-anchor="middle">
+            ${cleanTitle}
+        </text>
+        
+        <text x="400" y="260" font-family="'Segoe UI', Roboto, sans-serif" font-size="17" fill="#475569" font-weight="500" text-anchor="middle">
+            Fan: Raqamli emotsional intelekt
+        </text>
+        
+        <line x1="240" y1="295" x2="560" y2="295" stroke="#e2e8f0" stroke-width="2"/>
+        
+        <text x="400" y="340" font-family="'Segoe UI', Roboto, sans-serif" font-size="15" fill="#64748b" text-anchor="middle">
+            Boshlang'ich ta'lim pedagogikasi va psixologiyasi
+        </text>
 
-        <!-- Footer terms / Tayanch iboralar -->
-        <line x1="75" y1="385" x2="725" y2="385" stroke="#f1f5f9" stroke-width="1.5"/>
-        <text x="400" y="420" font-family="'Times New Roman', Times, serif" font-size="13" fill="#64748b" font-style="italic" text-anchor="middle">
-            Tayanch iboralar: konflikt, konstruktiv konflikt, destruktiv konflikt, pedagogik muloqot
+        <!-- Footer -->
+        <line x1="75" y1="410" x2="725" y2="410" stroke="#f1f5f9" stroke-width="1.5"/>
+        <text x="400" y="440" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" fill="#94a3b8" text-anchor="middle">
+            Format: ${extLower.toUpperCase()} • Rasmiy o'quv-uslubiy majmua
         </text>
     </svg>`;
     return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
@@ -283,10 +260,8 @@ window.renderPlatformMaterialCardHtml = function({
                 <button class="btn btn-primary btn-slot-download-main" onclick="fileManager.downloadFile('${id}')" title="Google Diskdan ochish va yuklab olish">
                     <span>⬇️ Yuklab olish</span>
                 </button>
-                <button class="btn btn-outline-sm btn-slot-preview-inline" onclick="openFilePreview('${id}')" title="Prevyu ko'rish">
-                    <span>👁️</span>
-                </button>
                 ${isAdmin ? `
+                    <button class="btn btn-outline-sm btn-slot-preview-inline" onclick="openFilePreview('${id}')" title="Prevyu ko'rish"><span>👁️</span></button>
                     <button class="btn btn-edit-slot-tiny" onclick="editUploadedFile('${id}')" title="Tahrirlash">✏️</button>
                     <button class="btn btn-slot-delete" onclick="deleteFileFromHub('${id}')" title="O'chirish">🗑️</button>
                 ` : ''}
@@ -299,7 +274,7 @@ window.renderPlatformMaterialCardHtml = function({
 // PLATFORMA KESHINI AVTOMATIK YANGILASH (CACHE BUSTER & FORCE SYNC v4.0)
 // Klient eski keshda qolib ketmasligi uchun avtomatik tozalash va yangilash
 // =============================================================================
-const APP_STORAGE_VERSION = 'rei_v4.7_20261031';
+const APP_STORAGE_VERSION = 'rei_v4.8_20261102';
 try {
     if (typeof localStorage !== 'undefined') {
         const storedVer = localStorage.getItem('rei_app_version');

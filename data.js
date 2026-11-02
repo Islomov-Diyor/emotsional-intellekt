@@ -15,7 +15,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-1",
         "name": "1- BTK ma'ruza.doc",
-        "topic": "1-mavzu. Pedagogik konfliktologiya fanining predmeti, maqsad va vazifalari",
+        "topic": "1-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -34,7 +34,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-2",
         "name": "2- BTK ma'ruza.doc",
-        "topic": "2-mavzu. Pedagogik muloqot va uning konfliktogen omillari",
+        "topic": "2-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -53,7 +53,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-3",
         "name": "3- BTK ma'ruza.doc",
-        "topic": "3-mavzu. Pedagogik konfliktlarning psixologik tuzilishi va dinamikasi",
+        "topic": "3-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -72,7 +72,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-4",
         "name": "4- BTK -maruza.doc",
-        "topic": "4-mavzu. O'quvchilarning yosh davrlari inqirozlari va pedagogik konfliktlar",
+        "topic": "4-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -91,7 +91,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-5",
         "name": "5- BTK ma'ruza.doc",
-        "topic": "5-mavzu. O'qituvchi va o'quvchi o'rtasidagi pedagogik konfliktlar",
+        "topic": "5-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -110,7 +110,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-6",
         "name": "6- BTK taqdimot.doc",
-        "topic": "6-mavzu. O'quvchi-o'quvchi munosabatlaridagi ziddiyatlar va bulling",
+        "topic": "6-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -129,7 +129,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-7",
         "name": "7- BTK maruza.doc",
-        "topic": "7-mavzu. O'qituvchi va ota-onalar hamkorligidagi konfliktlar",
+        "topic": "7-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -148,7 +148,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-8",
         "name": "8- BTK ma'ruza.doc",
-        "topic": "8-mavzu. Pedagogik konfliktlarni diagnostika qilish metodlari",
+        "topic": "8-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -167,7 +167,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-9",
         "name": "9- BTK maruza.doc",
-        "topic": "9-mavzu. Pedagogik nizolarni konstruktiv hal etish texnologiyalari",
+        "topic": "9-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -186,7 +186,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-10",
         "name": "10- BTK ma'ruza.doc",
-        "topic": "10-mavzu. Ta'lim muassasalarida pedagogik mediatorlik (vositachilik) xizmati",
+        "topic": "10-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -205,7 +205,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-11",
         "name": "11- BTK maruza.doc",
-        "topic": "11-mavzu. Oila va maktab hamkorligida pedagogik nizolarni bartaraf etish",
+        "topic": "11-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -224,7 +224,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-12",
         "name": "12- BTK ma'ruza.doc",
-        "topic": "12-mavzu. Sinf jamoasida sog'lom psixologik iqlimni shakllantirish texnologiyalari",
+        "topic": "12-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -243,7 +243,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-13",
         "name": "13- BTK maruza.doc",
-        "topic": "13-mavzu. O'qituvchining kasbiy kompetensiyasi va konfliktologik madaniyati",
+        "topic": "13-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -262,7 +262,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-14",
         "name": "14- BTK ma'ruza.doc",
-        "topic": "14-mavzu. Oiladagi va jamoadagi konfliktlar va ularning yechimlari",
+        "topic": "14-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -281,7 +281,7 @@ const defaultPlatformMaterials = [
     {
         "id": "mat-15",
         "name": "15- BTK ma'ruza.doc",
-        "topic": "15-mavzu. Boshlang'ich ta'limda pedagogik konfliktlarni bartaraf etishda sinf rahbarining o'rni",
+        "topic": "15-ma'ruza",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "lecture",
         "type": "doc",
@@ -300,7 +300,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-1",
         "name": "BTK 1-taqdimot.pptx",
-        "topic": "1-mavzu taqdimoti: Pedagogik konfliktologiya fanining predmeti, maqsad va vazifalari",
+        "topic": "1-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -319,7 +319,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-2",
         "name": "BTK-2-taqdimot.pdf",
-        "topic": "2-mavzu taqdimoti: Pedagogik muloqot va uning konfliktogen omillari",
+        "topic": "2-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pdf",
@@ -338,7 +338,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-3",
         "name": "BTK-3-taqdimot.ppt",
-        "topic": "3-mavzu taqdimoti: Pedagogik konfliktlarning psixologik tuzilishi va dinamikasi",
+        "topic": "3-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "ppt",
@@ -357,7 +357,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-4",
         "name": "BTK-4-taqdimot.pptx",
-        "topic": "4-mavzu taqdimoti: O'quvchilarning yosh davrlari inqirozlari va pedagogik konfliktlar",
+        "topic": "4-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -376,7 +376,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-5",
         "name": "BTK-5-taqdimot.ppt",
-        "topic": "5-mavzu taqdimoti: O'qituvchi va o'quvchi o'rtasidagi pedagogik konfliktlar",
+        "topic": "5-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "ppt",
@@ -395,7 +395,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-6",
         "name": "BTK-6-taqdimot.pptx",
-        "topic": "6-mavzu taqdimoti: O'quvchi-o'quvchi munosabatlaridagi ziddiyatlar va bulling",
+        "topic": "6-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -414,7 +414,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-7",
         "name": "BTK-7-taqdimot.pptx",
-        "topic": "7-mavzu taqdimoti: O'qituvchi va ota-onalar hamkorligidagi konfliktlar",
+        "topic": "7-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -433,7 +433,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-8",
         "name": "BTK-8-taqdimot.pptx",
-        "topic": "8-mavzu taqdimoti: Pedagogik konfliktlarni diagnostika qilish metodlari",
+        "topic": "8-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -452,7 +452,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-9",
         "name": "BTK-9-taqdimot.pptx",
-        "topic": "9-mavzu taqdimoti: Pedagogik nizolarni konstruktiv hal etish texnologiyalari",
+        "topic": "9-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -471,7 +471,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-10",
         "name": "BTK-10-taqdimot.pptx",
-        "topic": "10-mavzu taqdimoti: Ta'lim muassasalarida pedagogik mediatorlik (vositachilik) xizmati",
+        "topic": "10-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -490,7 +490,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-11",
         "name": "BTK-11-taqdimot.pptx",
-        "topic": "11-mavzu taqdimoti: Oila va maktab hamkorligida pedagogik nizolarni bartaraf etish",
+        "topic": "11-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -509,7 +509,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-12",
         "name": "BTK-12-taqdimot.pptx",
-        "topic": "12-mavzu taqdimoti: Sinf jamoasida sog'lom psixologik iqlimni shakllantirish texnologiyalari",
+        "topic": "12-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -528,7 +528,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-13",
         "name": "BTK_13-taqdimo.pptx",
-        "topic": "13-mavzu taqdimoti: O'qituvchining kasbiy kompetensiyasi va konfliktologik madaniyati",
+        "topic": "13-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -547,7 +547,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-14",
         "name": "BTK-14-taqdimot.pptx",
-        "topic": "14-mavzu taqdimoti: Oiladagi va jamoadagi konfliktlar va ularning yechimlari",
+        "topic": "14-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -566,7 +566,7 @@ const defaultPlatformMaterials = [
     {
         "id": "pres-15",
         "name": "BTK-15-taqdimot.pptx",
-        "topic": "15-mavzu taqdimoti: Boshlang'ich ta'limda pedagogik konfliktlarni bartaraf etishda sinf rahbarining o'rni",
+        "topic": "15-taqdimot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "presentation",
         "type": "pptx",
@@ -585,7 +585,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-1",
         "name": "1- BTK amaliy (4).doc",
-        "topic": "1-amaliy mashg'ulot: Pedagogik konfliktologiya fanining predmeti, maqsad va vazifalari",
+        "topic": "1-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -604,7 +604,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-2",
         "name": "2- BTK amaliy.doc",
-        "topic": "2-amaliy mashg'ulot: Pedagogik muloqot va uning konfliktogen omillari",
+        "topic": "2-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -623,7 +623,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-3",
         "name": "3- BTK amaliy.doc",
-        "topic": "3-amaliy mashg'ulot: Pedagogik konfliktlarning psixologik tuzilishi va dinamikasi",
+        "topic": "3-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -642,7 +642,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-4",
         "name": "4- BTK amaliy.doc",
-        "topic": "4-amaliy mashg'ulot: O'quvchilarning yosh davrlari inqirozlari va pedagogik konfliktlar",
+        "topic": "4-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -661,7 +661,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-5",
         "name": "5- BTK amaliy.doc",
-        "topic": "5-amaliy mashg'ulot: O'qituvchi va o'quvchi o'rtasidagi pedagogik konfliktlar",
+        "topic": "5-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -680,7 +680,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-6",
         "name": "6- BTK amaliy (4).doc",
-        "topic": "6-amaliy mashg'ulot: O'quvchi-o'quvchi munosabatlaridagi ziddiyatlar va bulling",
+        "topic": "6-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -699,7 +699,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-7",
         "name": "7- BTK amaliy.doc",
-        "topic": "7-amaliy mashg'ulot: O'qituvchi va ota-onalar hamkorligidagi konfliktlar",
+        "topic": "7-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -718,7 +718,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-8",
         "name": "8- BTK amaliy.doc",
-        "topic": "8-amaliy mashg'ulot: Pedagogik konfliktlarni diagnostika qilish metodlari",
+        "topic": "8-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -737,7 +737,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-9",
         "name": "9- BTK amaliy.doc",
-        "topic": "9-amaliy mashg'ulot: Pedagogik nizolarni konstruktiv hal etish texnologiyalari",
+        "topic": "9-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -756,7 +756,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-10",
         "name": "10-BTK amaliy_mashgulot.doc",
-        "topic": "10-amaliy mashg'ulot: Ta'lim muassasalarida pedagogik mediatorlik (vositachilik) xizmati",
+        "topic": "10-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -775,7 +775,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-11",
         "name": "11-BTK amaliy docx.doc",
-        "topic": "11-amaliy mashg'ulot: Oila va maktab hamkorligida pedagogik nizolarni bartaraf etish",
+        "topic": "11-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -794,7 +794,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-12",
         "name": "12-amaliy_mashgulot - Copy.doc",
-        "topic": "12-amaliy mashg'ulot: Sinf jamoasida sog'lom psixologik iqlimni shakllantirish texnologiyalari",
+        "topic": "12-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -813,7 +813,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-13",
         "name": "13-amaliy_mashgulot.doc",
-        "topic": "13-amaliy mashg'ulot: O'qituvchining kasbiy kompetensiyasi va konfliktologik madaniyati",
+        "topic": "13-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -832,7 +832,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-14",
         "name": "14-amaliy_mashgulot.doc",
-        "topic": "14-amaliy mashg'ulot: Oiladagi va jamoadagi konfliktlar va ularning yechimlari",
+        "topic": "14-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
@@ -851,7 +851,7 @@ const defaultPlatformMaterials = [
     {
         "id": "prac-15",
         "name": "15-amaliy_mashgulot-1.doc",
-        "topic": "15-amaliy mashg'ulot: Boshlang'ich ta'limda pedagogik konfliktlarni bartaraf etishda sinf rahbarining o'rni",
+        "topic": "15-amaliy mashg'ulot",
         "subject": "Fan: Raqamli emotsional intelekt",
         "category": "practical",
         "type": "doc",
