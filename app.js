@@ -279,7 +279,7 @@ window.renderPlatformMaterialCardHtml = function({
 // PLATFORMA KESHINI AVTOMATIK YANGILASH (CACHE BUSTER & FORCE SYNC v4.0)
 // Klient eski keshda qolib ketmasligi uchun avtomatik tozalash va yangilash
 // =============================================================================
-const APP_STORAGE_VERSION = 'rei_v5.0_20261102';
+const APP_STORAGE_VERSION = 'rei_v5.1_20261104';
 try {
     if (typeof localStorage !== 'undefined') {
         const storedVer = localStorage.getItem('rei_app_version');
