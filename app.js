@@ -279,7 +279,7 @@ window.renderPlatformMaterialCardHtml = function({
 // PLATFORMA KESHINI AVTOMATIK YANGILASH (CACHE BUSTER & FORCE SYNC v4.0)
 // Klient eski keshda qolib ketmasligi uchun avtomatik tozalash va yangilash
 // =============================================================================
-const APP_STORAGE_VERSION = 'rei_v5.1_20261104';
+const APP_STORAGE_VERSION = 'rei_v5.2_20261109';
 try {
     if (typeof localStorage !== 'undefined') {
         const storedVer = localStorage.getItem('rei_app_version');
@@ -684,12 +684,21 @@ class FileStorageManager {
     }
 
     updateBadgesAndUI() {
-        const total = this.memoryFiles.length;
-        const lectures = this.memoryFiles.filter(f => f.category === 'lecture').length;
-        const presentations = this.memoryFiles.filter(f => f.category === 'presentation').length;
-        const practicals = this.memoryFiles.filter(f => f.category === 'practical').length;
-        const tests = this.memoryFiles.filter(f => f.category === 'test').length;
-        const resources = this.memoryFiles.filter(f => f.category === 'resource').length;
+        const total = Math.max(
+            typeof defaultPlatformMaterials !== 'undefined' ? defaultPlatformMaterials.length : 0,
+            this.memoryFiles ? this.memoryFiles.length : 0,
+            47
+        );
+        const lectures = this.memoryFiles ? this.memoryFiles.filter(f => f.category === 'lecture').length : 0;
+        const presentations = this.memoryFiles ? this.memoryFiles.filter(f => f.category === 'presentation').length : 0;
+        const practicals = this.memoryFiles ? this.memoryFiles.filter(f => f.category === 'practical').length : 0;
+        const tests = this.memoryFiles ? this.memoryFiles.filter(f => f.category === 'test').length : 0;
+        const resources = this.memoryFiles ? this.memoryFiles.filter(f => f.category === 'resource').length : 0;
+
+        const totalLecCount = Math.max(typeof lecturesData !== 'undefined' ? lecturesData.length : 0, lectures, 15);
+        const totalPresCount = Math.max(typeof presentationsData !== 'undefined' ? presentationsData.length : 0, presentations, 15);
+        const totalPracCount = Math.max(typeof practicalsData !== 'undefined' ? practicalsData.length : 0, practicals, 15);
+        const totalTestCount = Math.max(typeof testsData !== 'undefined' ? testsData.length : 0, tests, 15);
 
         // Nav badges
         const navBadge = document.getElementById('nav-file-badge');
@@ -699,11 +708,6 @@ class FileStorageManager {
         const navPresBadge = document.getElementById('nav-presentations-badge');
         const navPracBadge = document.getElementById('nav-practicals-badge');
         const navTestBadge = document.getElementById('nav-tests-badge');
-
-        const totalLecCount = Math.max(typeof lecturesData !== 'undefined' ? lecturesData.length : 0, lectures);
-        const totalPresCount = Math.max(typeof presentationsData !== 'undefined' ? presentationsData.length : 0, presentations);
-        const totalPracCount = Math.max(typeof practicalsData !== 'undefined' ? practicalsData.length : 0, practicals);
-        const totalTestCount = Math.max(typeof testsData !== 'undefined' ? testsData.length : 0, tests);
 
         if (navLecBadge) navLecBadge.textContent = totalLecCount;
         if (navPresBadge) navPresBadge.textContent = totalPresCount;
@@ -718,28 +722,40 @@ class FileStorageManager {
             homeCount.setAttribute('data-count', total);
         }
         if (homeBar) {
-            homeBar.style.width = Math.min(100, total * 10) + '%';
+            homeBar.style.width = '100%';
         }
 
         const homeLecCount = document.getElementById('home-lectures-count');
         const homeLecBar = document.getElementById('home-lectures-bar');
-        if (homeLecCount) homeLecCount.textContent = totalLecCount;
-        if (homeLecBar) homeLecBar.style.width = Math.min(100, totalLecCount * 10) + '%';
+        if (homeLecCount) {
+            homeLecCount.textContent = totalLecCount;
+            homeLecCount.setAttribute('data-count', totalLecCount);
+        }
+        if (homeLecBar) homeLecBar.style.width = '100%';
 
         const homePresCount = document.getElementById('home-presentations-count');
         const homePresBar = document.getElementById('home-presentations-bar');
-        if (homePresCount) homePresCount.textContent = totalPresCount;
-        if (homePresBar) homePresBar.style.width = Math.min(100, totalPresCount * 10) + '%';
+        if (homePresCount) {
+            homePresCount.textContent = totalPresCount;
+            homePresCount.setAttribute('data-count', totalPresCount);
+        }
+        if (homePresBar) homePresBar.style.width = '100%';
 
         const homePracCount = document.getElementById('home-practicals-count');
         const homePracBar = document.getElementById('home-practicals-bar');
-        if (homePracCount) homePracCount.textContent = totalPracCount;
-        if (homePracBar) homePracBar.style.width = Math.min(100, totalPracCount * 10) + '%';
+        if (homePracCount) {
+            homePracCount.textContent = totalPracCount;
+            homePracCount.setAttribute('data-count', totalPracCount);
+        }
+        if (homePracBar) homePracBar.style.width = '100%';
 
         const homeTestCount = document.getElementById('home-tests-count');
         const homeTestBar = document.getElementById('home-tests-bar');
-        if (homeTestCount) homeTestCount.textContent = totalTestCount;
-        if (homeTestBar) homeTestBar.style.width = Math.min(100, totalTestCount * 10) + '%';
+        if (homeTestCount) {
+            homeTestCount.textContent = totalTestCount;
+            homeTestCount.setAttribute('data-count', totalTestCount);
+        }
+        if (homeTestBar) homeTestBar.style.width = '100%';
 
         // Storage status text
         const statusText = document.getElementById('storage-status-text');
@@ -832,6 +848,7 @@ function initApp() {
     initModals();
 
     // 7. Stat counters animation
+    if (window.fileManager) window.fileManager.updateBadgesAndUI();
     animateStats();
 
     // 8. Admin UI & access control
@@ -937,7 +954,8 @@ function initTheme() {
 function animateStats() {
     const counters = document.querySelectorAll('.stat-number');
     counters.forEach(counter => {
-        const target = parseInt(counter.getAttribute('data-count')) || 0;
+        const target = parseInt(counter.getAttribute('data-count') || counter.textContent, 10) || 0;
+        if (target <= 0) return;
         let count = 0;
         const step = Math.max(1, Math.ceil(target / 20));
         const timer = setInterval(() => {
@@ -948,7 +966,7 @@ function animateStats() {
             } else {
                 counter.textContent = count;
             }
-        }, 40);
+        }, 35);
     });
 }
 
